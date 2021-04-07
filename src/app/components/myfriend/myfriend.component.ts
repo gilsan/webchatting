@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from './../../services/user.service';
 import { FriendsService } from './../../services/friends.service';
-import { IUser } from 'src/app/models/userInfo';
-import { switchMap, tap, concatMap, map } from 'rxjs/operators';
-import { from } from 'rxjs';
 import { RequestService } from 'src/app/services/request';
+import { IUser } from 'src/app/models/userInfo';
+import { switchMap, tap, concatMap, map, take } from 'rxjs/operators';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'app-myfriend',
@@ -42,8 +42,13 @@ export class MyfriendComponent implements OnInit {
             tap(user => this.myProfile = user),
           )
           .subscribe((datas) => {
-            // console.log(this.myProfile, this.myUid);
-            this.getData();
+            // console.log('myFriend myProfile ', this.myProfile, this.myUid);
+            try {
+              this.getData();
+            } catch (err) {
+              console.log(err);
+            }
+
           });
       }
     });
@@ -51,11 +56,13 @@ export class MyfriendComponent implements OnInit {
 
 
   getData(): void {
+    console.log('myFriend myProfile ', this.myProfile, this.myUid);
     this.friendsService.getMyFriends(this.myUid, this.myProfile.email)
       .pipe(
         switchMap(emails => from(emails)),
         map((email: { email: string }) => email.email),
         concatMap(email => this.userService.getUsers(email)),
+        take(1),
         map(item => item[0])
       ).subscribe((data) => {
         this.friends.push(data);

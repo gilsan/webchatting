@@ -29,7 +29,7 @@ export class RequestService {
   ) { }
 
 
-  requestRef = this.db.collection('requests');
+  requestRef: AngularFirestoreCollection = this.db.collection('requests');
   // 사용방법 2가지
   // friendsRef: firebase.default.firestore.CollectionReference = this.db.collection('friends').ref;
   friendsRef: AngularFirestoreCollection = this.db.collection('friends');

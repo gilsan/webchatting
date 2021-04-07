@@ -99,8 +99,8 @@ export class UserService {
       .get() // 값만 가졍온후 complete 함. stateChange(), valueChange() 는 값이 바뀌면계속 보냄.
       .pipe(
         map((result) => result.docs.map(snap => snap.data())),
-        tap((data) => console.log('getUsers: ', data)),
-        first()
+        first(),
+        tap((data) => console.log('getUsers: ', data))
       )
     );
   }
