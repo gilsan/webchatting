@@ -1,0 +1,41 @@
+ <mat-dialog-content class="mat-typography">
+<div class="container  ">
+    <div class="row w-100">
+        <div class="col ">
+            <div class="card overflow-hidden">
+                <header class="bg-primary">
+                    <h1 class="text-lg   mb-0">등록</h1>
+                </header>
+                <div class="card-body pb-8">
+                    <form [formGroup]="formGroup">
+                        <div class="form-group">
+                            <label for="userid"  style="font-weight: 500;" >이메일</label>
+                            <input type="text" class="form-input" id="user_id" formControlName="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="password" style="font-weight: 500;">Password</label>
+                            <input type="password" class="form-input" id="password" formControlName="password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword" style="font-weight: 500;">Password 확인</label>
+                            <input type="password" class="form-input" id="confirmPassword" formControlName="pwconfirm">
+                        </div>
+                        <!--
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" style="padding-top: 2px;" (click)="onRegister()" >사용자등록</button>
+                        </div>
+                         -->
+                    </form>
+                </div>
+                <div class="bg-primary pt-1"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</mat-dialog-content>
+<div mat-dialog-actions>
+  <button mat-raised-button color="warn" (click)="onClose()">취소</button>
+  <button mat-raised-button color="primary" (click)="onRegister()" cdkFocusInitial>확인</button>
+</div>
+ 
+

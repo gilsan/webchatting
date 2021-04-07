@@ -1,0 +1,84 @@
+.login-form:hover,
+.login-form:active {
+  cursor: pointer;
+}
+
+body {
+  background-color: transparent !important;
+}
+
+.login-container {
+  margin-top: 100px;
+}
+
+.main_table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-err-message {
+  color: green;
+}
+
+.valid {
+  border-color: green !important;
+}
+
+.invalid {
+  border-color: red !important;
+}
+
+.abled {
+  color: white !important;
+}
+
+.disabled {
+  color: gray !important;
+}
+
+.da-radio>label {
+  display: inline-block;
+  position: relative;
+  padding-left: 14px;
+  margin-right: 30px;
+}
+
+.da-radio input[type="radio"] {
+  display: none;
+}
+
+.da-radio span {
+  color: #FFF;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.da-radio span::before {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #828282;
+  background-color: #fff;
+  border-radius: 50%;
+  left: 0;
+  top: 2px;
+  cursor: pointer;
+}
+
+.da-radio input[type="radio"]:checked~span::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 0;
+  background-color: #2196f3;
+  border-radius: 50%;
+  left: 3px;
+  top: 5px;
+  cursor: pointer;
+}

@@ -1,0 +1,17 @@
+<mat-toolbar color="primary">
+    <div>
+        <button mat-icon-button (click)="onToggleOpenSidenav()">
+            <mat-icon>menu</mat-icon>
+        </button>
+    </div>
+    <span>소통방</span>
+    <ul class="cards">
+    <!--  
+        <li [routerLink]="['portal']">CDK포털</li>     
+        <li [routerLink]="['overlay']">Overlay</li>        
+        <li [routerLink]="['table']">Table</li>
+     -->
+        <li (click)="logout()">로그아웃</li>
+    </ul> 
+
+</mat-toolbar>

@@ -1,0 +1,19 @@
+<mat-list>
+   <mat-list-item *ngFor="let user of users; let i = index">
+     <img matListAvatar [src]="user.photoURL">
+     <h3 matLine>{{user.displayName}}</h3>
+     <p matLine *ngIf="isRequested[i]">
+        <span>받은 친구요청</span>
+     <p>
+     <p matLine *ngIf="isSent[i]">
+        <span>친구요청</span>
+     <p>
+     <p matLine *ngIf="isfriends[i]">
+        <span>친구</span>
+     <p>
+     <button mat-icon-button (click)="addfriend(user)" *ngIf="canShow(i)">
+       <mat-icon color="primary">add_circle</mat-icon>
+     </button>
+   </mat-list-item>
+
+</mat-list>

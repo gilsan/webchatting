@@ -1,0 +1,42 @@
+<div fxLayout="row" fxLayoutAlign="center"  >
+   <div fxLayout="column">
+       <img class="centered-and-cropped" [src]="user.photoURL" width="150" height="150" 
+         style="border-radius:50%">
+       <h3>별명: {{user.displayName}}</h3>
+
+       <div fxLayout="row" fxLayoutAlign="center">
+         <mat-form-field *ngIf="nickNameedit">
+           <input matInput placeholder="별명입력" #nickname  (change)="changeNickname(nickname.value)" type="text">
+         </mat-form-field>
+
+         <span>
+           <button *ngIf="nickNameedit" mat-icon-button (click)="updateName()">
+              <mat-icon color="primary">check</mat-icon>
+           </button>
+         </span>
+
+         <span>
+           <button *ngIf="nickNameedit" mat-icon-button (click)="editName()">
+              <mat-icon color="warn">cancel</mat-icon>
+           </button>
+         </span>
+
+
+
+         <span matTooltip="별명변경" *ngIf="!nickNameedit">
+             <button mat-mini-fab color="primary" (click)="editName()">
+               <mat-icon>create</mat-icon>
+             </button>
+         </span>
+         <span matTooltip="아바타변경">
+             <button mat-mini-fab color="primary" (click)="fileInput.click()">
+                <mat-icon>badge</mat-icon>
+             </button>
+         </span>     
+         <input #fileInput type="file" (change)="chooseImage($event)" style="display:none;">
+         <mat-spinner *ngIf="spinnerToggle" [diameter]="30"></mat-spinner>
+       </div>
+
+   </div>
+
+</div>

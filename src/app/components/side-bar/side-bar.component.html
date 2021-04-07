@@ -1,0 +1,31 @@
+ 
+<mat-accordion  multi>
+  <mat-expansion-panel hidetoggle="true" expanded="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+         프로파일
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+     <app-profile></app-profile>
+  </mat-expansion-panel> 
+  <mat-expansion-panel hidetoggle="true" >
+     <mat-expansion-panel-header>
+        친구추가
+     </mat-expansion-panel-header>
+     <app-addfriend></app-addfriend>
+  </mat-expansion-panel> 
+  <mat-expansion-panel hidetoggle="true" >
+     <mat-expansion-panel-header>
+        친구승인
+     </mat-expansion-panel-header>
+     <app-requests></app-requests>
+  </mat-expansion-panel> 
+
+  <mat-expansion-panel hidetoggle="true" expanded="true">
+     <mat-expansion-panel-header>
+        친구목록
+     </mat-expansion-panel-header>
+     <app-myfriend></app-myfriend>
+  </mat-expansion-panel> 
+</mat-accordion>
+ 
