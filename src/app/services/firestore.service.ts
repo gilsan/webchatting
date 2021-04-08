@@ -3,7 +3,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 
 import { AngularFirestore } from '@angular/fire/firestore';
 
-import { from, Observable, BehaviorSubject } from 'rxjs';
+import { from, Observable, BehaviorSubject, Subject } from 'rxjs';
 import { first, map, tap } from 'rxjs/operators';
 
 
@@ -18,6 +18,8 @@ export class FirestoreService {
 
   isLoggedIn = false;
   subject$ = new BehaviorSubject<boolean>(false);
+  currentUid = new Subject();
+  currentUid$ = this.currentUid.asObservable();
   isLoggedIn$ = this.subject$.asObservable();
 
   constructor(
@@ -46,19 +48,24 @@ export class FirestoreService {
     return from(this.firebaseAuth.signInWithEmailAndPassword(email, password))
       .pipe(
         tap(res => {
-          // console.log('login: ', res);
+          console.log('login: ', res);
           this.authState = res.user;
           this.currentUserId = res.user.uid;
           this.isLoggedIn = true;
           localStorage.setItem('user', JSON.stringify(res.user));
           this.subject$.next(true);
+          this.currentUid.next(res.user.uid);
         })
       );
 
   }
 
+  setStatus(uid): void {
+
+  }
+
   setUserStatus(status, currentUserId = this.currentUserId): void {
-    // console.log('[상태변경][currentUserId]: ', currentUserId, status);
+    console.log('[상태변경][currentUserId]: ', currentUserId, status);
     const statuscollection = this.db.doc(`status/${currentUserId}`);
     const data = {
       status
@@ -108,6 +115,8 @@ export class FirestoreService {
       status: 'online'
     });
   }
+
+
 
 
 

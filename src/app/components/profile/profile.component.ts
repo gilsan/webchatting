@@ -34,7 +34,10 @@ export class ProfileComponent implements OnInit {
   }
 
   init(): void {
-
+    this.firestoreService.currentUid$.subscribe((uid: string) => {
+      this.uid = uid;
+      console.log('profile uid: ', this.uid);
+    });
     this.userService.getCurrentuser()
       .subscribe(data => {
         if (data) {
@@ -62,6 +65,7 @@ export class ProfileComponent implements OnInit {
     // console.log('uid: ', this.uid, this.newNickName);
     this.userService.updateName(this.newNickName, this.uid)
       .subscribe(data => {
+        console.log('updateName: ', data);
         this.newNickName = '';
         this.editName();
       });

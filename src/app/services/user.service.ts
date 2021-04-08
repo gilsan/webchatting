@@ -94,15 +94,23 @@ export class UserService {
   }
 
   // 친구 정보 가져오기
-  getUsers(email: string): Observable<any> {
-    return from(this.db.collection('users', ref => ref.where('email', '==', email))
-      .get() // 값만 가졍온후 complete 함. stateChange(), valueChange() 는 값이 바뀌면계속 보냄.
+  getUsers(email: string, title: string): Observable<IUser[]> {
+    console.log('[user service][getUsers][98] ', title);
+    return this.db.collection('users', ref => ref.where('email', '==', email)).get()
       .pipe(
-        map((result) => result.docs.map(snap => snap.data())),
+        map((result) => result.docs.map(snap => snap.data() as IUser)),
         first(),
         tap((data) => console.log('getUsers: ', data))
-      )
-    );
+      );
+    // return from(this.db.collection('users', ref => ref.where('email', '==', email))
+    //   .get() // 값만 가졍온후 complete 함. stateChange(), valueChange() 는 값이 바뀌면계속 보냄.
+    //   .pipe(
+    //     map((result) => result.docs.map(snap => snap.data())),
+    //     first(),
+    //     take(1),
+    //     tap((data) => console.log('getUsers: ', data))
+    //   )
+    // );
   }
 
   // 특정 사용자 프로파일

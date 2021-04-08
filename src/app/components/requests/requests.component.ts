@@ -46,7 +46,7 @@ export class RequestsComponent implements OnInit {
             concatMap(email => this.requestService.getMyRequests(email)),
             switchMap(result => from(result)),
             distinct((u: IRequest) => u.sender),
-            concatMap((request: IRequest) => this.userService.getUsers(request.sender)),
+            concatMap((request: IRequest) => this.userService.getUsers(request.sender, 'request component')),
           )
           .subscribe(userinfo => {
             this.requests.push(userinfo[0]);
@@ -64,7 +64,7 @@ export class RequestsComponent implements OnInit {
         tap(data => console.log('requests component ', data)),
         switchMap(result => from(result)),
         distinct((u: IRequest) => u.sender),
-        concatMap((request: IRequest) => this.userService.getUsers(request.sender)),
+        concatMap((request: IRequest) => this.userService.getUsers(request.sender, 'request component')),
       ).subscribe((data) => {
         console.log('update: ', data[0]);
         this.requests.push(data[0]);

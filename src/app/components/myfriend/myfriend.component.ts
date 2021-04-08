@@ -24,12 +24,12 @@ export class MyfriendComponent implements OnInit {
 
   ngOnInit(): void {
     this.init();
-    this.requestService.approveFriendObserver$.subscribe(result => {
-      if (result) {
-        this.friends = [];
-        this.getData();
-      }
-    });
+    // this.requestService.approveFriendObserver$.subscribe(result => {
+    //   console.log('[myFriend][approveFriendObserver][28]', result);
+    //   if (result) {
+    //     this.getData();
+    //   }
+    // });
   }
 
   init(): void {
@@ -42,7 +42,7 @@ export class MyfriendComponent implements OnInit {
             tap(user => this.myProfile = user),
           )
           .subscribe((datas) => {
-            // console.log('myFriend myProfile ', this.myProfile, this.myUid);
+            // console.log('[myFriend][init][46]', this.myProfile, this.myUid);
             try {
               this.getData();
             } catch (err) {
@@ -56,18 +56,21 @@ export class MyfriendComponent implements OnInit {
 
 
   getData(): void {
-    console.log('myFriend myProfile ', this.myProfile, this.myUid);
+    // console.log('[myFriend][getData()][60]', this.myProfile, this.myUid);
+    this.friends = [];
     this.friendsService.getMyFriends(this.myUid, this.myProfile.email)
       .pipe(
         switchMap(emails => from(emails)),
         map((email: { email: string }) => email.email),
-        concatMap(email => this.userService.getUsers(email)),
+        concatMap(email => this.userService.getUsers(email, 'myFriend Component')),
         take(1),
         map(item => item[0])
       ).subscribe((data) => {
         this.friends.push(data);
       });
   }
+
+
 
 
 

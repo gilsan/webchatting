@@ -174,4 +174,8 @@ export class AddfriendComponent implements OnInit {
 
   }
 
+  instantSearch(evt): void {
+    console.log(evt);
+  }
+
 }
