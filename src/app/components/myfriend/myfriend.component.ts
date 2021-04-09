@@ -5,6 +5,7 @@ import { RequestService } from 'src/app/services/request';
 import { IUser } from 'src/app/models/userInfo';
 import { switchMap, tap, concatMap, map, take } from 'rxjs/operators';
 import { from } from 'rxjs';
+import { FirestoreService } from 'src/app/services/firestore.service';
 
 @Component({
   selector: 'app-myfriend',
@@ -14,46 +15,44 @@ import { from } from 'rxjs';
 export class MyfriendComponent implements OnInit {
 
   friends: IUser[] = [];
+  status = [];
   myUid: string;
   myProfile: IUser;
   constructor(
     private userService: UserService,
     private friendsService: FriendsService,
+    private firestoreService: FirestoreService,
     private requestService: RequestService
   ) { }
 
   ngOnInit(): void {
     this.init();
-    // this.requestService.approveFriendObserver$.subscribe(result => {
-    //   console.log('[myFriend][approveFriendObserver][28]', result);
-    //   if (result) {
-    //     this.getData();
-    //   }
-    // });
   }
 
   init(): void {
-    const uID$ = this.userService.getCurrentuser();
-    uID$.subscribe(data => {
-      if (data) {
-        this.myUid = data.uid;
-        this.userService.getProfile(data.uid)
-          .pipe(
-            tap(user => this.myProfile = user),
-          )
-          .subscribe((datas) => {
-            // console.log('[myFriend][init][46]', this.myProfile, this.myUid);
-            try {
-              this.getData();
-            } catch (err) {
-              console.log(err);
-            }
-
-          });
-      }
+    this.firestoreService.currentUid$.subscribe((uid: string) => {
+      this.myUid = uid;
+      this.getMyProfile();
+      this.getFriendStatus();
     });
+
   }
 
+
+  getMyProfile(): void {
+    this.userService.getProfile(this.myUid)
+      .pipe(
+        tap(user => this.myProfile = user),
+      )
+      .subscribe((datas) => {
+        try {
+          this.getData();
+        } catch (err) {
+          console.log(err);
+        }
+
+      });
+  }
 
   getData(): void {
     // console.log('[myFriend][getData()][60]', this.myProfile, this.myUid);
@@ -67,10 +66,19 @@ export class MyfriendComponent implements OnInit {
         map(item => item[0])
       ).subscribe((data) => {
         this.friends.push(data);
+        // console.log('myfriend [69]: ', this.friends);
+        this.userService.getUserStatus(this.friends);
       });
+
   }
 
-
+  getFriendStatus(): void {
+    this.userService.userStatus$
+      .subscribe((data: any) => {
+        console.log('친구 상태: ', status);
+        this.friends.push(data);
+      });
+  }
 
 
 

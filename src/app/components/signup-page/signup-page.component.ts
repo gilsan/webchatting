@@ -38,10 +38,10 @@ export class SignupPageComponent implements OnInit {
         this.formGroup.value.email,
         this.formGroup.value.password
       ).subscribe(data => {
-        console.log('signup: ', data);
         this.firestoreService.setUserData(this.formGroup.value.email, '문정', this.pictureUrl);
-        this.dialogRef.close();
+        console.log('[onRegister][41]', data);
         this.router.navigate(['/dashboard']);
+        this.dialogRef.close();
       });
     }
 

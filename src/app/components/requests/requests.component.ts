@@ -24,13 +24,6 @@ export class RequestsComponent implements OnInit {
 
   ngOnInit(): void {
     this.init();
-    // this.requestService.addFriendObserver$.subscribe(data => {
-
-    //   if (data) {
-    //     console.log('requests component ', data);
-    //     this.update();
-    //   }
-    // });
   }
 
   init(): void {
@@ -38,7 +31,9 @@ export class RequestsComponent implements OnInit {
     const uID$ = this.userService.getCurrentuser();
     uID$.subscribe(data => {
       if (data) {
+
         this.uid = data.uid;
+        console.log('[request][uid][41][' + this.uid + ']');
         this.userService.getProfile(this.uid)
           .pipe(
             tap(user => this.myProfile = user),
@@ -84,6 +79,18 @@ export class RequestsComponent implements OnInit {
             .subscribe(result => {
               console.log(result);
               if (result) {
+                this.requests = [];
+                this.init();
+                this.snackBar.open('친구 요청을 승인 하였습니다.', '닫기', { duration: 3000 });
+              }
+            });
+        } else {
+          this.requestService.addFriendWhenNoExist(request.email, this.uid, this.myProfile.email)
+            .subscribe((result) => {
+              console.log(result);
+              if (result) {
+                this.requests = [];
+                this.init();
                 this.snackBar.open('친구 요청을 승인 하였습니다.', '닫기', { duration: 3000 });
               }
             });
@@ -98,7 +105,7 @@ export class RequestsComponent implements OnInit {
         if (data === 'none') {
           this.requestService.addFriend2(this.myProfile.email, this.uid)
             .pipe(
-              concatMap(() => this.requestService.addFriendSub2(request.email, this.uid))
+              concatMap(() => this.requestService.addFriendSub2(request.email, this.uid, this.myProfile.email))
             )
             .subscribe((result) => {
               console.log(result);
@@ -110,7 +117,7 @@ export class RequestsComponent implements OnInit {
               }
             });
         } else {
-          this.requestService.addFriendWhenNoExist(request.email, this.uid)
+          this.requestService.addFriendWhenNoExist(request.email, this.uid, this.myProfile.email)
             .subscribe((result) => {
               console.log(result);
               if (result) {

@@ -22,34 +22,31 @@ export class ProfileComponent implements OnInit {
     private userService: UserService,
     private firestoreService: FirestoreService,
   ) {
-    // this.userService.currentUser$.subscribe((user: IUser) => {
-    //   this.user = user;
-    // });
+
 
   }
 
   ngOnInit(): void {
-    // this.uid = this.firestoreService.currentUserId;
+
     this.init();
   }
 
   init(): void {
     this.firestoreService.currentUid$.subscribe((uid: string) => {
       this.uid = uid;
-      console.log('profile uid: ', this.uid);
     });
     this.userService.getCurrentuser()
       .subscribe(data => {
         if (data) {
           this.uid = data.uid;
-          // console.log('profile: [uid] ', this.uid);
+
           this.userService.getProfile(this.uid)
             .pipe(
               tap(user => this.user = user),
               distinct((u: IUser) => u.email),
             )
             .subscribe((user) => {
-              // console.log('==== profile: ', user);
+
             });
         }
       });
@@ -68,7 +65,14 @@ export class ProfileComponent implements OnInit {
         console.log('updateName: ', data);
         this.newNickName = '';
         this.editName();
+        this.getMyInfo();
       });
+  }
+
+  getMyInfo(): void {
+    this.userService.getProfile(this.uid).subscribe((user: IUser) => {
+      this.user = user;
+    });
   }
 
   changePic(): void { }

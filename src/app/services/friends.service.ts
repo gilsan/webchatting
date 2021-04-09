@@ -23,6 +23,7 @@ export class FriendsService {
 
 
   getMyFriends(uid, email): Observable<any> {
+    console.log('[friend][26]');
     return this.db.collection(`friends/${uid}/myfriends`).valueChanges()
       .pipe(
         first()
@@ -30,6 +31,7 @@ export class FriendsService {
   }
 
   getmyFriends(email: string): Promise<any> {
+    console.log('[friend][34]');
     return new Promise((resolve) => {
       const query = this.friendsCollection.ref.where('email', '==', email);
       query.get().then((snapShot) => {
@@ -46,7 +48,17 @@ export class FriendsService {
   }
 
   getFriendList(): Observable<any> {
+    console.log('[friend][51]');
     return this.db.doc('friends/' + this.docId).collection('myfriends').valueChanges();
+  }
+
+  getRequestFriendList(email: string): Observable<any> {
+    console.log('[friend][56]');
+    return this.db.collectionGroup('myfriends', ref => ref.where('email', '==', email)).get()
+      .pipe(
+        map((result) => result.docs.map(snap => snap.data())),
+        first(),
+      );
   }
 
 

@@ -18,7 +18,7 @@ export class FirestoreService {
 
   isLoggedIn = false;
   subject$ = new BehaviorSubject<boolean>(false);
-  currentUid = new Subject();
+  currentUid = new BehaviorSubject<string>('');
   currentUid$ = this.currentUid.asObservable();
   isLoggedIn$ = this.subject$.asObservable();
 
@@ -48,7 +48,7 @@ export class FirestoreService {
     return from(this.firebaseAuth.signInWithEmailAndPassword(email, password))
       .pipe(
         tap(res => {
-          console.log('login: ', res);
+          // console.log('login: ', res);
           this.authState = res.user;
           this.currentUserId = res.user.uid;
           this.isLoggedIn = true;
@@ -65,7 +65,7 @@ export class FirestoreService {
   }
 
   setUserStatus(status, currentUserId = this.currentUserId): void {
-    console.log('[상태변경][currentUserId]: ', currentUserId, status);
+    // console.log('[상태변경][currentUserId]: ', currentUserId, status);
     const statuscollection = this.db.doc(`status/${currentUserId}`);
     const data = {
       status
@@ -80,6 +80,7 @@ export class FirestoreService {
       .pipe(
         tap(res => {
           this.currentUserId = res.user.uid;
+          this.currentUid.next(this.currentUserId);
           this.isLoggedIn = true;
           localStorage.setItem('user', JSON.stringify(res.user));
           this.subject$.next(true);
@@ -94,26 +95,44 @@ export class FirestoreService {
         tap(res => {
           localStorage.removeItem('user');
           this.subject$.next(false);
+          this.setUserStatus('offline');
         })
       );
   }
 
 
-
+  // 등록시 만들어짐
   setUserData(email: string, displayName: string, photoURL: string): void {
-    const path = `/users/${this.currentUserId}`;
-    const statuspath = `status/${this.currentUserId}`;
-    const userdoc = this.db.doc(path);
-    const status = this.db.doc(statuspath);
-    userdoc.set({
+    // console.log('UID: ', this.currentUserId);
+    // console.log(email, displayName, photoURL);
+    this.db.doc(`status/${this.currentUserId}`).set({
+      status: 'online',
+      uid: this.currentUserId
+    });
+
+    this.db.doc(`users/${this.currentUserId}`).set({
       email,
       displayName,
-      photoURL
+      photoURL,
+      uid: this.currentUserId
     });
+    // this.db.doc(`users/${this.currentUserId}`).
+    // const path = `users/${this.currentUserId}`;
+    // const statuspath = `status/${this.currentUserId}`;
+    // const userdoc = this.db.doc(path);
+    // const status = this.db.doc(statuspath);
+    // console.log('[setUserData]');
+    // userdoc.set({
+    //   email,
+    //   displayName,
+    //   photoURL,
+    //   uid: this.currentUserId
+    // });
 
-    status.set({
-      status: 'online'
-    });
+    // status.set({
+    //   status: 'online',
+    //  uid: this.currentUserId
+    // });
   }
 
 
