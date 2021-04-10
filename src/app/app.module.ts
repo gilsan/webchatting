@@ -30,6 +30,8 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { AddfriendComponent } from './components/addfriend/addfriend.component';
 import { RequestsComponent } from './components/requests/requests.component';
 import { MyfriendComponent } from './components/myfriend/myfriend.component';
+import { ChatFeedComponent } from './components/chat-feed/chat-feed.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 
 @NgModule({
@@ -44,6 +46,8 @@ import { MyfriendComponent } from './components/myfriend/myfriend.component';
     AddfriendComponent,
     RequestsComponent,
     MyfriendComponent,
+    ChatFeedComponent,
+    FooterComponent,
   ],
   imports: [
     BrowserModule,

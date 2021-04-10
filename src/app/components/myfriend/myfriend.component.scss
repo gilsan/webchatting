@@ -1,0 +1,20 @@
+.presence {
+  border-radius: 100%;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+}
+
+.presence.online {
+  background-color: lawngreen;
+}
+
+.presence.offline {
+  background-color: red;
+}
+
+
+a {
+  cursor: pointer;
+  color: blue;
+}

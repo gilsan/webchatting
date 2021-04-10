@@ -4,9 +4,10 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore } from '@angular/fire/firestore';
 import * as firebase from 'firebase';
 import { from, Observable, BehaviorSubject, pipe, of } from 'rxjs';
-import { concatMap, filter, first, map, switchMap, take, tap, distinct } from 'rxjs/operators';
+import { concatMap, filter, first, map, switchMap, take, tap, distinct, last } from 'rxjs/operators';
 import { AngularFireStorage } from '@angular/fire/storage';
 import { IUser } from '../models/userInfo';
+import { IStatus } from './../models/userInfo';
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +17,11 @@ export class UserService {
   currentUser = new BehaviorSubject<IUser>({ displayName: '', email: '', photoURL: '' });
   currentUser$ = this.currentUser.asObservable();
 
-  userStatus = new BehaviorSubject<string[]>([]);
-  userStatus$ = this.userStatus.asObservable();
+  friendsStatus = new BehaviorSubject<IUser[]>([]);
+  friendsStatus$ = this.friendsStatus.asObservable();
+
+  statusUpdate = new BehaviorSubject<string>('noep');
+  statusUpdate$ = this.statusUpdate.asObservable();
 
   uid: string;
   constructor(
@@ -39,6 +43,8 @@ export class UserService {
         }
 
       });
+
+    this.updateStatuses();
   }
 
   // 내정보
@@ -95,7 +101,10 @@ export class UserService {
   // 모든 친구가져오기
   getAllUsers(email: string): Observable<any> {
     console.log('[user][96]');
-    return this.db.collection('users', ref => ref.where('email', '!=', email).limit(2)).valueChanges();
+    // this.firebaseAuth.currentUser.then((data) => {
+    //   console.log('[currentUser', data);
+    // });
+    return this.db.collection('users', ref => ref.where('email', '!=', email).limit(4)).valueChanges();
     /*
     참고
    return this.db.collection('users', ref => ref.limit(2)).valueChanges()
@@ -132,7 +141,7 @@ export class UserService {
 
   // 특정 사용자 프로파일
   getUserDetails(users): any {
-    console.log('[user][133]');
+    console.log('[user][135]');
     const userProfiles = [];
     const collRef = this.db.collection('users').ref;
     users.forEach((element) => {
@@ -148,7 +157,7 @@ export class UserService {
   }
 
   instantSearch(startValue, endValue): Observable<any> {
-    console.log('[user][49]');
+    console.log('[user][51]');
     return this.db.collection('users',
       ref => ref.orderBy('displayName')
         .startAt(startValue)
@@ -157,24 +166,55 @@ export class UserService {
   }
 
   // 사용자 상태 가져오기
-  getUserStatus(friends: IUser[]): void {
-    console.log('[user][59]');
-    const friendStatus = [];
-    const user = localStorage.getItem('user');
-    const uid = JSON.parse(user).uid;
-    // const statusColl = this.db.collection('status').ref;
+  getFriendStatus(friends: IUser[]): void {
 
+    const friendStatus = [];
     friends.map((element, i) => {
-      const queryRef = this.db.doc(`status/${uid}`).get();
-      queryRef.subscribe((status) => {
-        const val: any = status.data();
-        const value = val.status;
-        friendStatus.push({ status: value, ...element });
+      const queryRef = this.db.doc(`status/${element.uid}`).snapshotChanges().pipe(
+        map(snaps => snaps.payload.data()),
+      );
+      queryRef.subscribe((status: IStatus) => {
+        const value = status.status;
+        const newStatus = { status: value, ...element };
+        friendStatus[i] = newStatus;
         if (i === friends.length - 1) {
-          this.userStatus.next(friendStatus);
+          console.log('[user][176][getFriendStatus] [uid]', friendStatus);
+          this.friendsStatus.next(friendStatus);
         }
       });
     });
+
+  }
+
+
+  getStatusFriend(friends: IUser[]): void {
+    const friendStatus = [];
+    friends.map((element, i) => {
+      this.db.doc(`status/${element.uid}`).get()
+        .pipe(
+          map(result => result.data())
+        ).subscribe((status: IStatus) => {
+          const value = status.status;
+          const newStatus = { status: value, ...element };
+          friendStatus[i] = newStatus;
+          if (i === friends.length - 1) {
+            console.log('[user][196][getFriendStatus]', friendStatus);
+            this.friendsStatus.next(friendStatus);
+          }
+        });
+    });
+
+  }
+
+  //
+  updateStatuses(): void {
+    this.db.collection('status').snapshotChanges(['modified'])
+      .subscribe((data) => {
+        console.log('[user][updateStatuses][210]', data);
+        if (data.length !== 0) {
+          this.statusUpdate.next('StatusUpdated');
+        }
+      });
   }
 
 

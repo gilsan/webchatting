@@ -1,10 +1,10 @@
-<mat-list>
-   <mat-list-item *ngFor="let user of friends; let i = index">
+<mat-list  style="cursor: pointer;">
+   <mat-list-item *ngFor="let user of friends; let i = index" 
+        (click)="enterChat(user)">
      <img matListAvatar [src]="user.photoURL">
      <h3 matLine>{{user.displayName}}</h3>
      <p matLine>
-         {{user.status}}
+        <span class="presence" [ngClass]="{ 'online': user.status === 'online', 'offline': user.status === 'offline' }"></span>       
      </p>
    </mat-list-item>
-
 </mat-list>

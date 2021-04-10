@@ -1,0 +1,10 @@
+<div *ngIf="showChat">
+   <mat-list>
+       <mat-list-item *ngFor="let message of messages">
+       {{ message.message}}
+       </mat-list-item>
+   </mat-list>
+</div>
+<footer class="footer"  *ngIf="showChat">
+  <app-footer></app-footer>
+</footer>

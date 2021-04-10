@@ -4,20 +4,40 @@ export class IUser {
   email: string;
   photoURL: string;
   status?: string;
+  uid?: string;
+
 }
 
-export class IRequest {
+export interface IFriend {
+  displayName: string;
+  email: string;
+  photoURL: string;
+  uid: string;
+}
+
+export interface IRequest {
   receiver: string;
   sender: string;
 }
 
-export class IRUserInfo {
+export interface IRUserInfo {
   email: string;
   uid: string;
   requestemail: string;
 }
 
-export class IStatus {
+export interface IStatus {
   status: string;
   uid: string;
+}
+
+export interface IConversation {
+  messageId: string;
+  myemail: string;
+  wihtWhom: string;
+}
+export interface IMsg {
+  message: string;
+  timestamp: string;
+  sentBy: string;
 }

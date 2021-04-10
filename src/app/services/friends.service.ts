@@ -31,7 +31,15 @@ export class FriendsService {
   }
 
   getmyFriends(email: string): Promise<any> {
-    console.log('[friend][34]');
+    console.log('[friend][34][시험용');
+    // const query1 = this.friendsCollection.ref.where('email', '==', email);
+    // query1.get().then((snapShot) => {
+    //   if (!snapShot.empty) {
+    //      this.db.collection('friends').doc(snapShot.docs[0].data().)
+    //   }
+
+    // });
+
     return new Promise((resolve) => {
       const query = this.friendsCollection.ref.where('email', '==', email);
       query.get().then((snapShot) => {

@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from './../../services/user.service';
 import { FriendsService } from './../../services/friends.service';
 import { RequestService } from 'src/app/services/request';
-import { IUser } from 'src/app/models/userInfo';
-import { switchMap, tap, concatMap, map, take } from 'rxjs/operators';
+import { IFriend, IUser } from 'src/app/models/userInfo';
+import { switchMap, tap, concatMap, map, take, first } from 'rxjs/operators';
 import { from } from 'rxjs';
 import { FirestoreService } from 'src/app/services/firestore.service';
+import { MessageService } from './../../services/message.service';
 
 @Component({
   selector: 'app-myfriend',
@@ -22,7 +23,8 @@ export class MyfriendComponent implements OnInit {
     private userService: UserService,
     private friendsService: FriendsService,
     private firestoreService: FirestoreService,
-    private requestService: RequestService
+    private requestService: RequestService,
+    private messagesService: MessageService
   ) { }
 
   ngOnInit(): void {
@@ -32,10 +34,10 @@ export class MyfriendComponent implements OnInit {
   init(): void {
     this.firestoreService.currentUid$.subscribe((uid: string) => {
       this.myUid = uid;
-      this.getMyProfile();
-      this.getFriendStatus();
     });
-
+    this.getMyProfile();
+    this.getFriendsStatus();
+    this.friendsUpdate();
   }
 
 
@@ -46,7 +48,7 @@ export class MyfriendComponent implements OnInit {
       )
       .subscribe((datas) => {
         try {
-          this.getData();
+          this.getFriendsData();
         } catch (err) {
           console.log(err);
         }
@@ -54,32 +56,47 @@ export class MyfriendComponent implements OnInit {
       });
   }
 
-  getData(): void {
-    // console.log('[myFriend][getData()][60]', this.myProfile, this.myUid);
-    this.friends = [];
+  getFriendsData(): void {  // 친구정보
+
     this.friendsService.getMyFriends(this.myUid, this.myProfile.email)
       .pipe(
         switchMap(emails => from(emails)),
         map((email: { email: string }) => email.email),
         concatMap(email => this.userService.getUsers(email, 'myFriend Component')),
         take(1),
-        map(item => item[0])
+        map(item => item[0]),
       ).subscribe((data) => {
+        this.friends = [];
         this.friends.push(data);
-        // console.log('myfriend [69]: ', this.friends);
-        this.userService.getUserStatus(this.friends);
+        // this.userService.getFriendStatus(this.friends);  1안
+        this.userService.getStatusFriend(this.friends);  // 2안
       });
 
   }
 
-  getFriendStatus(): void {
-    this.userService.userStatus$
-      .subscribe((data: any) => {
-        console.log('친구 상태: ', status);
-        this.friends.push(data);
+  getFriendsStatus(): void {
+    this.userService.friendsStatus$
+      .subscribe((data: IUser[]) => {
+        this.friends = [];
+        // console.log('친구 상태 [78]: ', data);
+        this.friends = data;
       });
   }
 
+  friendsUpdate(): void {
+    this.userService.statusUpdate$
+      .subscribe(value => {
+        // console.log('[myfriend][friendsUpdate][87] ', value);
+        if (value === 'StatusUpdated') {
+          if (this.friends) {
+            this.getFriendsData();
+          }
+        }
+      });
+  }
 
+  enterChat(user): void {
+    this.messagesService.enterChat(user);
+  }
 
 }
