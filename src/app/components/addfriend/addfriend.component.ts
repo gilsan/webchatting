@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Subject, combineLatest } from 'rxjs';
-import { map, tap, concatMap, switchMap, filter, distinct, take } from 'rxjs/operators';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Subject, combineLatest, Observable } from 'rxjs';
+import { map, tap, concatMap, switchMap, filter, distinct, take, delay } from 'rxjs/operators';
 import { IRUserInfo, IUser } from 'src/app/models/userInfo';
 import { RequestService } from 'src/app/services/request';
 import { UserService } from './../../services/user.service';
@@ -13,11 +13,11 @@ import { FirestoreService } from 'src/app/services/firestore.service';
   templateUrl: './addfriend.component.html',
   styleUrls: ['./addfriend.component.scss']
 })
-export class AddfriendComponent implements OnInit {
+export class AddfriendComponent implements OnInit, OnDestroy {
 
   myUid: string;
   myProfile: IUser;
-  users: IUser[];
+  users: IUser[] = [];
   bkupUsers: IUser[];
   isFriends = [];
   isRequested = [];
@@ -30,6 +30,8 @@ export class AddfriendComponent implements OnInit {
   myRequests = [];
   mySendRequests = [];
 
+  exist$: Observable<string>;
+
   constructor(
     private userService: UserService,
     private requestService: RequestService,
@@ -40,21 +42,63 @@ export class AddfriendComponent implements OnInit {
 
   ngOnInit(): void {
     this.init();
+    // this.exist$ = this.friendService.friendsCollTrigger$;
+  }
+
+  ngOnDestroy(): void {
+
   }
 
   // 내기본 정보 가져오기 uid , 프로파일, 친구목록
   init(): void {
     this.firestoreService.currentUid$.subscribe((uid: string) => {
-      console.log('[48][init][' + uid + ']');
+      // console.log('[48][init][' + uid + ']');
       this.myUid = uid;
-      this.getMyProfile();
+      this.getMyProfile2();
     });
 
   }
 
+  getMyProfile(): void {
+    this.userService.currentUser$
+      .pipe(
+        tap(user => this.myProfile = user),
+        map(user => user.email),
+        concatMap(email => this.userService.getAllUsers(email)),
+        tap(users => this.users = users),
+        tap(users => this.bkupUsers = users),
+        delay(700)
+      )
+      .subscribe((data) => {
+        // console.log('[친구추가][][내정보][앞차]', this.myProfile);
+        this.getMyFriends();
+        this.getMyRequest();
+        this.getMySend();
+      });
+  }
+
+  getMyProfile2(): void {
+
+    console.log('[175][addfriend][getMyProfile][' + this.myUid + ']');
+    this.userService.getUserProfile(this.myUid, 'ADDFRIEND getMyProfile2')
+      .pipe(
+        tap(user => this.myProfile = user),
+        map(user => user.email),
+        concatMap(email => this.userService.getAllUsers(email)),
+        tap(users => this.users = users),
+        tap(users => this.bkupUsers = users)
+      )
+      .subscribe(user => {
+
+        this.getMyFriends();
+        this.getMyRequest();
+        this.getMySend();
+      });
+  }
+
 
   addfriend(user: IUser): void {
-    this.requestService.addRequest(user.email, this.myProfile.email)
+    this.requestService.addRequest(user.email, this.myProfile.email, this.myUid)
       .subscribe(data => {
         // console.log(data);
         if (data.id) {
@@ -82,15 +126,16 @@ export class AddfriendComponent implements OnInit {
     // 친구 필터링
     this.friendService.getmyFriends(this.myProfile.email).then((res: any) => {
       this.friendService.friendsCollTrigger$.subscribe((hasUser) => {
+        // console.log('[ADDFRIEND][144][getMyFriends] ', hasUser);
         if (hasUser === 'Exists') {
-          this.friendService.getFriendList().subscribe((friends: { email: string }[]) => {
+          this.friendService.getFriendList().subscribe((friends: IRUserInfo[]) => {
             this.myFriends = friends;
             if (friends) {  // 친구 있는 경우
               this.isFriends = [];
               let flag = 0;
               this.users.map((userElement, i) => {
                 friends.forEach((friendElement) => {
-                  if (userElement.email === friendElement.email) {
+                  if (userElement.email === friendElement.requestemail) {
                     flag += 1;
                   }
                 });
@@ -111,10 +156,12 @@ export class AddfriendComponent implements OnInit {
 
           });
 
-        } else {  // sub-collection myfriend 에서 찿음.
-          this.friendService.getRequestFriendList(this.myProfile.email).subscribe(snapshot => {
-            this.findFriends(snapshot);
-          });
+        } else if (hasUser === 'Nothing') {  // sub-collection myfriend 에서 찿음.
+          const tempFriend: IUser[] = [];
+          this.friendService.getRequestFriendList(this.myProfile.email, 'ADD FRIEND getMyFriends')
+            .subscribe(snapshot => {
+              this.findFriends(snapshot);
+            });
         }
 
 
@@ -172,34 +219,18 @@ export class AddfriendComponent implements OnInit {
 
   }
 
-  getMyProfile(): void {
 
-    console.log('[175][addfriend][getMyProfile][' + this.myUid + ']');
-    this.userService.getProfile(this.myUid)
-      .pipe(
-        tap(user => this.myProfile = user),
-        map(user => user.email),
-        concatMap(email => this.userService.getAllUsers(email)),
-        tap(users => this.users = users),
-        tap(users => this.bkupUsers = users)
-      )
-      .subscribe(user => {
-
-        this.getMyFriends();
-        this.getMyRequest();
-        this.getMySend();
-      });
-  }
 
 
 
   findFriends(friends: IRUserInfo[]): void {
     if (friends) {  // 친구 있는 경우
       this.isFriends = [];
+      // console.log('[addFriend][202][findFriends]', friends);
       let flag = 0;
       this.users.map((userElement, i) => {
         friends.forEach((friendElement) => {
-          if (userElement.email === friendElement.requestemail) {
+          if (userElement.email === friendElement.email) {
             flag += 1;
           }
         });

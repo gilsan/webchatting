@@ -34,22 +34,23 @@ export class RequestService {
   // friendsRef: firebase.default.firestore.CollectionReference = this.db.collection('friends').ref;
   friendsRef: AngularFirestoreCollection = this.db.collection('friends');
 
-  addRequest(newrequest, email): Observable<any> {
+  addRequest(newrequest: string, email: string, requestUid: string): Observable<any> {
     console.log('[[request][38]');
     this.addFriend$.next(true);
     return from(this.requestRef.add({
       sender: email,
-      receiver: newrequest  // 수신자 이메일
+      receiver: newrequest,  // 수신자 이메일
+      uid: requestUid
     }));
   }
 
   getMyRequests(email): Observable<any> {
-    console.log('[[request][47]');
+    // console.log('[[request][47]');
     return this.db.collection('requests', ref => ref.where('receiver', '==', email)).valueChanges();
   }
 
   getSentRequests(email): Observable<any> {
-    console.log('[[request][52]');
+    // console.log('[[request][52]');
     return this.db.collection('requests', ref => ref.where('sender', '==', email)).valueChanges();
   }
 
@@ -110,7 +111,7 @@ export class RequestService {
   }
 
   getFriend(email): Observable<any> {
-    console.log('[[request][113]');
+    // console.log('[[request][113]');
     return from(this.friendsRef.ref.where('email', '==', email).get())
       .pipe(
         map(state => {
@@ -131,9 +132,9 @@ export class RequestService {
       );
   }
 
-  // 친구추가
+  // 친구추가 승인자의 UID로 저장됨
   addFriend2(email: string, uid: string): Observable<any> {
-    console.log('[[request][136]');
+    // console.log('[[request][136]');
     this.approveFriend$.next(true);
     return from(this.friendsRef.doc(uid).set({ email }));
   }
@@ -141,19 +142,20 @@ export class RequestService {
 
   // 기존에 디렉토리가 없는 경우 콜렉션 및 서브 콜렉션 추가
   addFriendSub(email: string, id: string): Observable<any> {
-    console.log('[[request][144]');
+    // console.log('[[request][144]');
     return from(this.friendsRef.doc(id).collection('myfriends').add({ email }));
   }
 
 
   addFriendSub2(email: string, uid: string, requestemail: string): Observable<any> {
+    // 요청자의 uid 확인
     return from(this.friendsRef.doc(uid).collection('myfriends').add({ email, uid, requestemail }));
   }
 
 
   // 기존에 콜렉션이 있는 경우
   addFriendWhenNoExist(email: string, uid: string, requestemail: string): Observable<any> {
-    console.log('[[request][156]');
+    // console.log('[[request][156]');
     this.approveFriend$.next(true);
     return from(this.db.doc(`friends/${uid}`).collection('myfriends').add({ email, uid, requestemail }));
   }
@@ -161,7 +163,7 @@ export class RequestService {
 
   // request 삭제
   deleteFindDeletItem(email): Observable<any> {
-    console.log('[[request][164]');
+    // console.log('[[request][164]');
     const requestColl = this.requestRef.ref;
     return from(requestColl.where('sender', '==', email).get())
       .pipe(
@@ -170,7 +172,7 @@ export class RequestService {
   }
 
   deleteItem(id): Observable<any> {
-    console.log('[[request][173]');
+    // console.log('[[request][173]');
     return from(this.requestRef.doc(id).delete());
   }
 

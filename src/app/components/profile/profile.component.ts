@@ -35,21 +35,24 @@ export class ProfileComponent implements OnInit {
     this.firestoreService.currentUid$.subscribe((uid: string) => {
       this.uid = uid;
     });
-    this.userService.getCurrentuser()
-      .subscribe(data => {
-        if (data) {
-          this.uid = data.uid;
+    this.userService.currentUser$.subscribe((user: IUser) => {
+      this.user = user;
+    });
+    // this.userService.getCurrentuser()
+    //   .subscribe(data => {
+    //     if (data) {
+    //       this.uid = data.uid;
 
-          this.userService.getProfile(this.uid)
-            .pipe(
-              tap(user => this.user = user),
-              distinct((u: IUser) => u.email),
-            )
-            .subscribe((user) => {
+    //       this.userService.getProfile(this.uid)
+    //         .pipe(
+    //           tap(user => this.user = user),
+    //           distinct((u: IUser) => u.email),
+    //         )
+    //         .subscribe((user) => {
 
-            });
-        }
-      });
+    //         });
+    //     }
+    //   });
 
   }
 
@@ -70,7 +73,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getMyInfo(): void {
-    this.userService.getProfile(this.uid).subscribe((user: IUser) => {
+    this.userService.getUserProfile(this.uid, 'PROFILE getMyInfo').subscribe((user: IUser) => {
       this.user = user;
     });
   }

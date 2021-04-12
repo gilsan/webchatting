@@ -1,0 +1,44 @@
+
+<!-- 
+<div class="content" *ngIf="showChat">
+   <div class="sk-folding-cube" *ngIf="loadingSpinner">
+   <div class="sk-cube1 sk-cube">
+   <div class="sk-cube2 sk-cube">
+   <div class="sk-cube4 sk-cube">
+   <div class="sk-cube3 sk-cube">
+</div>
+<div id="chat">
+   <div *ngFor="let msg of messages" [ngClass]="chooseClass(msg)">
+   <p>{{msg}}</p>
+   
+     <div class="content">
+        <div class="avatar" *ngIf="msg.sentby === MyId">
+           <img src = "{{currentChatUser.photoURL}}">
+        </div>
+        <div class="avatar" *ngIf="msg.sentby !== MyId">
+          <img src="{{MyAvatar}}">
+        </div>
+
+     </div>
+   </div>
+</div>
+-->
+ 
+<div id="chat">
+   <div *ngFor="let msg of messages" [ngClass]="chooseClass(msg)">      
+       <div class="content">
+          <p>{{msg.message}}</p>
+          <div class="avatar" *ngIf="msg.sentBy === MyId">           
+             <img [src]= "currentChatUser.photoURL">
+          </div>
+        <div class="avatar" *ngIf="msg.sentBy !== MyId">
+          <img [src]="MyAvatar">
+        </div>
+
+       </div>
+   </div>
+</div>
+ 
+<footer class="footer"  *ngIf="showChat">
+  <app-footer></app-footer>
+</footer>

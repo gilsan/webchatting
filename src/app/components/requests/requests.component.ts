@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { combineLatest, from } from 'rxjs';
-import { map, tap, concatMap, switchMap, filter, distinct } from 'rxjs/operators';
+import { map, tap, concatMap, switchMap, filter, distinct, delay } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IRequest, IUser } from 'src/app/models/userInfo';
 import { RequestService } from 'src/app/services/request';
@@ -34,7 +34,8 @@ export class RequestsComponent implements OnInit {
 
         this.uid = data.uid;
         console.log('[request][uid][41][' + this.uid + ']');
-        this.userService.getProfile(this.uid)
+        // this.getRequest();
+        this.userService.getUserProfile(this.uid, ' REQUEST INIT')
           .pipe(
             tap(user => this.myProfile = user),
             map(user => user.email),
@@ -50,6 +51,25 @@ export class RequestsComponent implements OnInit {
 
     });
   }
+
+  getRequest(): void {
+    this.userService.currentUser$
+      .pipe(
+        tap(user => this.myProfile = user),
+        map(user => user.email),
+        concatMap(email => this.requestService.getMyRequests(email)),
+        switchMap(result => from(result)),
+        distinct((u: IRequest) => u.sender),
+        concatMap((request: IRequest) => this.userService.getUsers(request.sender, 'request component')),
+        delay(300)
+      )
+      .subscribe((userinfo) => {
+        this.requests.push(userinfo[0]);
+        console.log('[친구요청]', this.requests);
+      });
+  }
+
+
 
   update(): void {
     this.requests = [];
@@ -105,7 +125,8 @@ export class RequestsComponent implements OnInit {
         if (data === 'none') {
           this.requestService.addFriend2(this.myProfile.email, this.uid)
             .pipe(
-              concatMap(() => this.requestService.addFriendSub2(request.email, this.uid, this.myProfile.email))
+              // concatMap(() => this.requestService.addFriendSub2(request.email, this.uid, this.myProfile.email))
+              concatMap(() => this.requestService.addFriendSub2(this.myProfile.email, this.uid, request.email))
             )
             .subscribe((result) => {
               console.log(result);
@@ -117,7 +138,7 @@ export class RequestsComponent implements OnInit {
               }
             });
         } else {
-          this.requestService.addFriendWhenNoExist(request.email, this.uid, this.myProfile.email)
+          this.requestService.addFriendWhenNoExist(this.myProfile.email, this.uid, request.email)
             .subscribe((result) => {
               console.log(result);
               if (result) {

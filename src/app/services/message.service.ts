@@ -33,7 +33,7 @@ export class MessageService {
 
   enterChat(user): void {
     this.currentChatUser = user;
-    // console.log('[35][message service][enterChat]순서[1][친구클릭] ', user);
+    console.log('[35][message service][enterChat]순서[1][친구클릭] ', user);
     this.enteredChat.next(true);
   }
 

@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { first, map } from 'rxjs/operators';
+import { first, map, distinct, tap } from 'rxjs/operators';
+import { IRUserInfo } from '../models/userInfo';
 
 
 @Injectable({
@@ -12,7 +13,7 @@ export class FriendsService {
 
 
   friendsCollection: AngularFirestoreCollection = this.db.collection('friends');
-  friendsCollTrigger = new BehaviorSubject<string>('Exists');
+  friendsCollTrigger = new BehaviorSubject<string>('Exist');
   friendsCollTrigger$ = this.friendsCollTrigger.asObservable();
   docId: string;
 
@@ -23,7 +24,7 @@ export class FriendsService {
 
 
   getMyFriends(uid, email): Observable<any> {
-    console.log('[friend][26]');
+    // console.log('[friend][26]');
     return this.db.collection(`friends/${uid}/myfriends`).valueChanges()
       .pipe(
         first()
@@ -31,15 +32,7 @@ export class FriendsService {
   }
 
   getmyFriends(email: string): Promise<any> {
-    console.log('[friend][34][시험용');
-    // const query1 = this.friendsCollection.ref.where('email', '==', email);
-    // query1.get().then((snapShot) => {
-    //   if (!snapShot.empty) {
-    //      this.db.collection('friends').doc(snapShot.docs[0].data().)
-    //   }
-
-    // });
-
+    // console.log('[friend][34][getmyFriends][친구있나요][1차]', email);
     return new Promise((resolve) => {
       const query = this.friendsCollection.ref.where('email', '==', email);
       query.get().then((snapShot) => {
@@ -56,15 +49,18 @@ export class FriendsService {
   }
 
   getFriendList(): Observable<any> {
-    console.log('[friend][51]');
+    // console.log('[friend][51]');
     return this.db.doc('friends/' + this.docId).collection('myfriends').valueChanges();
   }
 
-  getRequestFriendList(email: string): Observable<any> {
-    console.log('[friend][56]');
-    return this.db.collectionGroup('myfriends', ref => ref.where('email', '==', email)).get()
+  // 요청자로 친구 찿기
+  getRequestFriendList(email: string, caller: string = ''): Observable<any> {
+    // console.log('[friend SERVICE][56][getRequestFriendList][호출자]', email, caller);
+    return this.db.collectionGroup<IRUserInfo>('myfriends', ref => ref.where('requestemail', '==', email)).get()
       .pipe(
         map((result) => result.docs.map(snap => snap.data())),
+        // tap(data => console.log('[friend][61][getRequestFriendList][TAP][호출자]', data, caller)),
+        distinct(data => data[0].uid),
         first(),
       );
   }

@@ -5,6 +5,7 @@ import { AngularFirestore } from '@angular/fire/firestore';
 
 import { from, Observable, BehaviorSubject, Subject } from 'rxjs';
 import { first, map, tap } from 'rxjs/operators';
+import { IUser } from '../models/userInfo';
 
 
 @Injectable({
@@ -21,7 +22,7 @@ export class FirestoreService {
   currentUid = new BehaviorSubject<string>('');
   currentUid$ = this.currentUid.asObservable();
   isLoggedIn$ = this.subject$.asObservable();
-
+  user: IUser;
   constructor(
     private db: AngularFirestore,
     private firebaseAuth: AngularFireAuth,
@@ -43,6 +44,16 @@ export class FirestoreService {
   authUser(): boolean {
     return this.authState !== null && this.authState !== undefined ? true : false;
   }
+
+  // 로그인 사용자 정보
+  currentUserDetails(): void {
+    this.db.doc(`status/${this.currentUserId}`).get()
+      .subscribe(user => {
+        console.log('[][currentUserDetails]', user.data());
+      });
+  }
+
+
 
   login(email: string, password: string): Observable<any> {
     return from(this.firebaseAuth.signInWithEmailAndPassword(email, password))
@@ -116,23 +127,7 @@ export class FirestoreService {
       photoURL,
       uid: this.currentUserId
     });
-    // this.db.doc(`users/${this.currentUserId}`).
-    // const path = `users/${this.currentUserId}`;
-    // const statuspath = `status/${this.currentUserId}`;
-    // const userdoc = this.db.doc(path);
-    // const status = this.db.doc(statuspath);
-    // console.log('[setUserData]');
-    // userdoc.set({
-    //   email,
-    //   displayName,
-    //   photoURL,
-    //   uid: this.currentUserId
-    // });
 
-    // status.set({
-    //   status: 'online',
-    //  uid: this.currentUserId
-    // });
   }
 
 
