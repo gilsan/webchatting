@@ -1,17 +1,18 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable, OnInit, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AngularFireStorage } from '@angular/fire/storage';
 
 import { Observable, BehaviorSubject, of, from, Subject } from 'rxjs';
-import { concatMap, distinct, first, map, switchMap, tap } from 'rxjs/operators';
+import { concatMap, delay, distinct, first, map, switchMap, take, tap } from 'rxjs/operators';
 import { IConversation, IMsg, IUser } from '../models/userInfo';
 import * as firebase from 'firebase';
+import { SubSink } from 'subsink';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MessageService {
+export class MessageService implements OnDestroy {
 
   enteredChat = new BehaviorSubject<boolean>(false);
   enteredChat$ = this.enteredChat.asObservable();
@@ -19,21 +20,34 @@ export class MessageService {
   messages = new BehaviorSubject<IMsg[]>([]);
   messages$ = this.messages.asObservable();
 
-  currentChatUser: IUser;
+  addMessage = new BehaviorSubject<IMsg[]>([]);
+  addMessage$ = this.addMessage.asObservable();
+  addMsg$: Observable<any>;
+
+
+  currentChatUser: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
   email: string;
   firstDocId: string;
   secondDocId: string;
+
+  private subs = new SubSink();
 
   constructor(
     private auth: AngularFireAuth,
     private db: AngularFirestore,
     private storage: AngularFireStorage
-  ) { }
+  ) {
+    this.updateMessafeStatuses();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
 
 
   enterChat(user): void {
     this.currentChatUser = user;
-    console.log('[35][message service][enterChat]순서[1][친구클릭] ', user);
+
     this.enteredChat.next(true);
   }
 
@@ -46,6 +60,7 @@ export class MessageService {
 
     queryRef.get().then((snapShot) => {
       // document 처음 만듬
+
       if (snapShot.empty) {
         this.db.collection('conversations').add({
           myemail,
@@ -60,7 +75,7 @@ export class MessageService {
             this.db.collection('messages').add({
               key: Math.floor(Math.random() * 10000000)
             }).then((docRef) => {
-              console.log('[messages][docRef] ', docRef.id);
+
               this.db.collection('messages').doc(docRef.id).collection('msgs').add({
                 message: newMsg,
                 tiemstamp: firebase.default.firestore.FieldValue.serverTimestamp(),
@@ -72,7 +87,8 @@ export class MessageService {
                   this.db.collection('conversations').doc(this.secondDocId).update({
                     messageId: docRef.id
                   }).then(() => {
-                    console.log('확인 Firestore IF 파트');
+                    console.log('확인 Firestore IF 파트,  저장했습니다.');
+                    // this.addMessage.next(true);
                   });
                 });
               });
@@ -87,7 +103,8 @@ export class MessageService {
           timestamp: firebase.default.firestore.FieldValue.serverTimestamp(),
           sentby: myemail
         }).then(() => {
-          console.log('확인 Firebase else 파트');
+          console.log('확인 Firebase else 파트,  저장했습니다.');
+
         });
       }
 
@@ -97,9 +114,11 @@ export class MessageService {
 
 
   getAllMessages(): void {
+
     from(this.auth.currentUser)
       .pipe(
         map(data => data.email),
+        delay(600),
         map(email => {
           const collRef = this.db.collection('conversations').ref;
           const queryRef = collRef.where('myemail', '==', email)
@@ -115,7 +134,7 @@ export class MessageService {
         ids.forEach((messageId) => {
           this.db.collection('messages', ref => ref.orderBy('timestamp')).doc(messageId).collection('msgs').valueChanges()
             .pipe(
-              distinct((u: IMsg[]) => u[0].message),
+              take(1)
             )
             .subscribe((result: IMsg[]) => {
               msgs.push(result[0]);
@@ -125,11 +144,41 @@ export class MessageService {
       });
   }
 
-  test(): void {
+  getSecAllMessages(): void {
 
+    from(this.auth.currentUser)
+      .pipe(
+        map(data => data.email),
+        delay(600),
+        map(email => {
+          const collRef = this.db.collection('conversations').ref;
+          const queryRef = collRef.where('myemail', '==', email)
+            .where('withWhom', '==', this.currentChatUser.email);
+          return queryRef;
+        }),
+        map(ref => ref.onSnapshot(() => {
+
+        })),
+
+      ).subscribe((data) => {
+        console.log(data);
+      });
   }
 
 
+
+  //// 메세지 상태 변경
+  updateMessafeStatuses(): void {
+    this.subs.sink = this.db.collection('messages').snapshotChanges(['added'])
+      .subscribe((data) => {
+        const id = data[0].payload.doc.id;
+        this.db.doc(`messages/${id}`).collection('msgs').valueChanges()
+          .subscribe((value: IMsg[]) => {
+            this.addMessage.next(value);
+          });
+
+      });
+  }
 
 
 

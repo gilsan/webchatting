@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { AngularFirestore } from '@angular/fire/firestore';
@@ -9,11 +9,12 @@ import { AngularFireStorage } from '@angular/fire/storage';
 import { IUser } from '../models/userInfo';
 import { IStatus } from './../models/userInfo';
 import { StoreService } from './store.service';
+import { SubSink } from 'subsink';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserService {
+export class UserService implements OnDestroy {
 
   currentUser = new BehaviorSubject<IUser>({ displayName: '', email: '', photoURL: '' });
   currentUser$ = this.currentUser.asObservable();
@@ -24,7 +25,7 @@ export class UserService {
   statusUpdate = new BehaviorSubject<string>('noep');
   statusUpdate$ = this.statusUpdate.asObservable();
 
-
+  private subs = new SubSink();
 
   uid: string;
   constructor(
@@ -51,6 +52,10 @@ export class UserService {
       });
 
     this.updateStatuses();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   // 내정보
@@ -185,7 +190,7 @@ export class UserService {
 
   // 사용자 상태 가져오기
   getFriendStatus(friends: IUser[], caller: string): void {
-    console.log('[USER][188][getFriendStatus] ', caller);
+    // console.log('[USER][188][getFriendStatus] ', caller);
     const friendStatus = [];
     friends.map((element, i) => {
       const queryRef = this.db.doc(`status/${element.uid}`).snapshotChanges().pipe(
@@ -196,7 +201,7 @@ export class UserService {
         const newStatus = { status: value, ...element };
         friendStatus[i] = newStatus;
         if (i === friends.length - 1) {
-          console.log('[user][176][getFriendStatus] [uid]', friendStatus);
+          // console.log('[user][176][getFriendStatus] [uid]', friendStatus);
           this.friendsStatus.next(friendStatus);
         }
       });
@@ -206,7 +211,7 @@ export class UserService {
 
 
   getStatusFriend(friends: IUser[], caller: string): void {
-    console.log('[FRIEND][209][getStatusFriend] ', caller);
+    // console.log('[FRIEND][209][getStatusFriend] ', caller);
     const friendStatus = [];
     friends.map((element, i) => {
       this.db.doc(`status/${element.uid}`).get()
@@ -217,7 +222,7 @@ export class UserService {
           const newStatus = { status: value, ...element };
           friendStatus[i] = newStatus;
           if (i === friends.length - 1) {
-            console.log('[FRIEND][220][getFriendStatus]', friendStatus);
+            // console.log('[FRIEND][220][getFriendStatus][2]', friendStatus);
             this.friendsStatus.next(friendStatus);
           }
         });
@@ -225,11 +230,11 @@ export class UserService {
 
   }
 
-  //
+  //// status 상태 변경
   updateStatuses(): void {
-    this.db.collection('status').snapshotChanges(['modified'])
+    this.subs.sink = this.db.collection('status').snapshotChanges(['modified'])
       .subscribe((data) => {
-        console.log('[user][updateStatuses][210]', data);
+        // console.log('[USER 상태변경][updateStatuses][210]', data);
         if (data.length !== 0) {
           this.statusUpdate.next('StatusUpdated');
         }

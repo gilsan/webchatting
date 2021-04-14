@@ -14,7 +14,7 @@ import { UserService } from './../../services/user.service';
 export class RequestsComponent implements OnInit {
 
   uid: string;
-  myProfile: IUser;
+  myProfile: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
   requests: IUser[] = [];
   constructor(
     private userService: UserService,
@@ -33,7 +33,7 @@ export class RequestsComponent implements OnInit {
       if (data) {
 
         this.uid = data.uid;
-        console.log('[request][uid][41][' + this.uid + ']');
+        // console.log('[request][uid][41][' + this.uid + ']');
         // this.getRequest();
         this.userService.getUserProfile(this.uid, ' REQUEST INIT')
           .pipe(
@@ -65,7 +65,7 @@ export class RequestsComponent implements OnInit {
       )
       .subscribe((userinfo) => {
         this.requests.push(userinfo[0]);
-        console.log('[친구요청]', this.requests);
+        // console.log('[친구요청]', this.requests);
       });
   }
 
@@ -73,10 +73,10 @@ export class RequestsComponent implements OnInit {
 
   update(): void {
     this.requests = [];
-    console.log('requests component ', this.myProfile.email);
+    // console.log('requests component ', this.myProfile.email);
     this.requestService.getMyRequests(this.myProfile.email)
       .pipe(
-        tap(data => console.log('requests component ', data)),
+        // tap(data => console.log('requests component ', data)),
         switchMap(result => from(result)),
         distinct((u: IRequest) => u.sender),
         concatMap((request: IRequest) => this.userService.getUsers(request.sender, 'request component')),

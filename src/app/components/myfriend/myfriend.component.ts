@@ -20,7 +20,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
   friends: IUser[] = [];
   status = [];
   myUid: string;
-  myProfile: IUser;
+  myProfile: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
 
   users: IUser[] = [];
   bkupUsers: IUser[];
@@ -106,8 +106,9 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     let tempUser: IUser[] = [];
     this.friendsService.getmyFriends(this.myProfile.email).then((res: Observable<any>) => {
       res.subscribe(data => {
+        // console.log('[MYFRIEND][109][친구내역!!][1]', data);
         if (data === 'Nothing') {
-          this.friendsService.getRequestFriendList(this.myProfile.email)
+          this.friendsService.getRequestFriendList(this.myProfile.email, 'myfriend')
             .pipe(
               switchMap((friends: IRUserInfo[]) => from(friends)),
               map(user => user.uid),
@@ -115,6 +116,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
               map(user => tempUser = [...tempUser, user]),
             )
             .subscribe((friends: IUser[]) => {
+              // console.log('[MYFRIEND][118][친구내역!!][3]', friends);
               this.userService.getStatusFriend(friends, 'MYFRIEND getFriendsData 112');
             });
         }
@@ -131,7 +133,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
       ).subscribe((data) => {
         this.friends = [];
         this.friends.push(data);
-        console.log('[MYFRIEND][112][친구내역!!][112]', this.friends);
+        // console.log('[MYFRIEND][112][친구내역!!][112]', this.friends);
         // this.userService.getFriendStatus(this.friends);  1안
         this.userService.getStatusFriend(this.friends, 'MYFRIEND getFriendsData 112');  // 2안
       });
@@ -142,18 +144,16 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     this.userService.friendsStatus$
       .subscribe((data: IUser[]) => {
         this.friends = [];
-        console.log('[MYFRIEND][친구 상태] [121]: ', data);
         this.friends = data;
+        console.log('[MYFRIEND][146][친구내역!!][4]', data);
       });
   }
 
   friendsUpdate(): void {
     this.userService.statusUpdate$
       .subscribe(value => {
-        // console.log('[myfriend][friendsUpdate][120] ', this.friends.length);
         if (value === 'StatusUpdated') {
           if (this.friends.length > 0) {
-            // console.log('[myfriend][friendsUpdate][123] ', this.friends);
             this.getFriendsData();
           }
         }

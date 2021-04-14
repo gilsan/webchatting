@@ -114,8 +114,7 @@ export class FirestoreService {
 
   // 등록시 만들어짐
   setUserData(email: string, displayName: string, photoURL: string): void {
-    // console.log('UID: ', this.currentUserId);
-    // console.log(email, displayName, photoURL);
+
     this.db.doc(`status/${this.currentUserId}`).set({
       status: 'online',
       uid: this.currentUserId

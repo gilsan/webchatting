@@ -79,7 +79,7 @@ export class AddfriendComponent implements OnInit, OnDestroy {
 
   getMyProfile2(): void {
 
-    console.log('[175][addfriend][getMyProfile][' + this.myUid + ']');
+    // console.log('[175][addfriend][getMyProfile][' + this.myUid + ']');
     this.userService.getUserProfile(this.myUid, 'ADDFRIEND getMyProfile2')
       .pipe(
         tap(user => this.myProfile = user),
@@ -218,8 +218,6 @@ export class AddfriendComponent implements OnInit, OnDestroy {
     });
 
   }
-
-
 
 
 

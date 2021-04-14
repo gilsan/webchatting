@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { first, map, distinct, tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, from } from 'rxjs';
+import { first, map, distinct, tap, filter, take } from 'rxjs/operators';
 import { IRUserInfo } from '../models/userInfo';
 
 
@@ -54,16 +54,18 @@ export class FriendsService {
   }
 
   // 요청자로 친구 찿기
-  getRequestFriendList(email: string, caller: string = ''): Observable<any> {
-    // console.log('[friend SERVICE][56][getRequestFriendList][호출자]', email, caller);
-    return this.db.collectionGroup<IRUserInfo>('myfriends', ref => ref.where('requestemail', '==', email)).get()
+  getRequestFriendList(email: string, caller: string = 'none'): Observable<any> {
+    if (caller === 'none') {
+      return from([]);
+    }
+    return this.db.collectionGroup<IRUserInfo>('myfriends', ref => ref.where('requestemail', '==', email)).valueChanges()
       .pipe(
-        map((result) => result.docs.map(snap => snap.data())),
-        // tap(data => console.log('[friend][61][getRequestFriendList][TAP][호출자]', data, caller)),
-        distinct(data => data[0].uid),
-        first(),
+        // tap(data => console.log('[friend][61][getRequestFriendList][TAP][호출자][2]', data, email, caller)),
+        take(1),
       );
   }
+
+
 
 
 

@@ -36,7 +36,11 @@ export class ProfileComponent implements OnInit {
       this.uid = uid;
     });
     this.userService.currentUser$.subscribe((user: IUser) => {
-      this.user = user;
+      if (user) {
+        this.user = user;
+      } else {
+        this.user = { displayName: '', email: '', photoURL: '' };
+      }
     });
     // this.userService.getCurrentuser()
     //   .subscribe(data => {
