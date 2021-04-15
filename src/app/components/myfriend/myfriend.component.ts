@@ -145,7 +145,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
       .subscribe((data: IUser[]) => {
         this.friends = [];
         this.friends = data;
-        console.log('[MYFRIEND][146][친구내역!!][4]', data);
+        // console.log('[MYFRIEND][146][친구내역!!][4]', data);
       });
   }
 

@@ -1,0 +1,23 @@
+<div fxLayout="row" fxLayoutAlign="center"  *ngIf="isUserSelected" >
+   <div fxLayout="column">
+       <img class="centered-and-cropped" [src]="currentUser.photoURL" width="150" height="150" 
+         style="border-radius:50%">
+       <h3>별명: {{currentUser.displayName}}</h3>
+
+       <div fxLayout="row" fxLayoutAlign="center">
+           <span matTooltip="Call">
+               <button mat-mini-fab color="primary">
+                    <mat-icon>phone_iphone</mat-icon>
+               </button>
+            </span>
+           <span matTooltip="Close chat" >
+               <button mat-mini-fab color="warn" (click)="closeChat()">
+                     <mat-icon>cancel</mat-icon>
+               </button>
+            </span>
+
+        </div>
+   </div>
+</div>
+
+<p *ngIf="!isUserSelected"> 채팅 사용자를 선택해 주세요.</p>

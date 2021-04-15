@@ -32,6 +32,12 @@ import { RequestsComponent } from './components/requests/requests.component';
 import { MyfriendComponent } from './components/myfriend/myfriend.component';
 import { ChatFeedComponent } from './components/chat-feed/chat-feed.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { SmartDatePipe } from './pipe/smart-date.pipe';
+import { RelativeDatePipe } from './pipe/relative-date.pipe';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { ScrollableDirective } from './directives/scrollable.directive';
+import { ActivityComponent } from './components/activity/activity.component';
+import { FriendInfoComponent } from './components/friend-info/friend-info.component';
 
 
 @NgModule({
@@ -48,6 +54,12 @@ import { FooterComponent } from './components/footer/footer.component';
     MyfriendComponent,
     ChatFeedComponent,
     FooterComponent,
+    SmartDatePipe,
+    RelativeDatePipe,
+    LoadingSpinnerComponent,
+    ScrollableDirective,
+    ActivityComponent,
+    FriendInfoComponent
   ],
   imports: [
     BrowserModule,
@@ -65,6 +77,9 @@ import { FooterComponent } from './components/footer/footer.component';
   ],
   providers: [
     AuthguardService
+  ],
+  entryComponents: [
+    LoadingSpinnerComponent
   ],
   bootstrap: [AppComponent]
 })

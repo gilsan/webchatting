@@ -114,7 +114,7 @@ export class UserService implements OnDestroy {
     return from(this.storage.upload(`profilepics/${uid}`, file));
   }
 
-  // 그림 URL 가저여기
+  // 그림 URL 가저오기
   downloadProfilePic(uid): Observable<any> {
     // console.log('[user][90]');
     return this.storage.ref(`profilepics/${uid}`).getDownloadURL();

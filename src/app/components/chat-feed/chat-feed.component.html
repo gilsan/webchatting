@@ -32,40 +32,53 @@
 						</div>
 
     
-      <div class="card-body msg_card_body">
-         <div   *ngFor="let msg of messages">
-        <div class="d-flex justify-content-start mb-4" *ngIf="msg.sentBy === MyId">
-          <div class="img_cont_msg">
-            <img [src]="MyAvatar" class="rounded-circle user_img_msg">
-          </div>
-          <div class="msg_cotainer">
-              {{msg.message}}
-            <span class="msg_time">8:40 AM, Today</span>
-          </div>
+        <div class="card-body msg_card_body" #scrollMe  scrollable (scrollPosition)="scrollHandler($event)">
+          <p *ngIf="allLoaded">메세지가 없습니다.</p>
+           <div   *ngFor="let msg of messages">
+
+                 <div class="d-flex justify-content-start mb-4" *ngIf="msg.sentBy === MyId">
+                   <div class="img_cont_msg">
+                       <img [src]="MyAvatar" class="rounded-circle user_img_msg">
+                   </div>
+                   <div class="msg_cotainer"  *ngIf="isPicMsg">
+                        {{msg.message}}
+                        <span class="msg_time"  style="width: 85px;" *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate}}</span>
+                    </div>
+                      <!--  그림 메세지  -->
+                     <div class="msg_cotainer" *ngIf="!isPicMsg">
+                         <img src="{{msg.message}}"> 
+                     </div>
+                      <!--         -->
+                 </div>
+                 <div class="d-flex justify-content-end mb-4"  *ngIf="msg.sentBy !== MyId">
+                    <div class="msg_cotainer_send"  *ngIf="isPicMsg">
+                       {{msg.message}}
+                       <span class="msg_time_send" style="width: 85px;"  *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate }}</span>
+                    </div>
+                      <!--  그림 메세지  -->
+                     <div class="msg_cotainer" *ngIf="!isPicMsg">
+                         <img src="{{msg.message}}"> 
+                     </div>
+                      <!--         -->
+                    <div class="img_cont_msg">
+                        <img [src]="currentChatUser.photoURL" class="rounded-circle user_img_msg">
+                    </div>
+                 </div>
+            </div>
         </div>
-        <div class="d-flex justify-content-end mb-4"  *ngIf="msg.sentBy !== MyId">
-          <div class="msg_cotainer_send">
-            {{msg.message}}
-            <span class="msg_time_send">8:55 AM, Today</span>
-          </div>
-          <div class="img_cont_msg">
-        <img [src]="currentChatUser.photoURL" class="rounded-circle user_img_msg">
-          </div>
-        </div>
-        </div>
-      </div>
    
       <div class="card-footer">
         <div class="input-group">
           <div class="input-group-append">
-            <span class="input-group-text attach_btn">
+            <span class="input-group-text attach_btn" (click)="fileInput.click()">
               <i class="fas fa-paperclip"></i>             
               <mat-icon >add_link</mat-icon>
               </span>
+              <input #fileInput type="file" (change)="sendImage($event)" style="display:none">
           </div>
           <textarea name="" class="form-control type_msg" placeholder="메세지....." [(ngModel)]="newmessage"></textarea>
           <div class="input-group-append">
-            <span class="input-group-text send_btn" (click)="addMessage()">
+            <span class="input-group-text send_btn" (click)="addMessage('txt')">
                <mat-icon >add_circle</mat-icon>
             </span>
           </div>

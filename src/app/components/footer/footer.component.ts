@@ -33,7 +33,8 @@ export class FooterComponent implements OnInit {
 
   addMessage(): void {
     if (this.newmessage !== '') {
-      this.msgService.addNewMsg(this.newmessage, this.currentUseremail);
+      const type = 'none';
+      this.msgService.addNewMsg(this.newmessage, this.currentUseremail, type);
     }
   }
 
