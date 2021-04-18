@@ -76,12 +76,12 @@ export class FirestoreService {
 
   }
 
-  setUserStatus(state, currentUserId = this.currentUserId): void {
-    // console.log('[상태변경][currentUserId]: ', currentUserId, state);
+  setUserStatus(state, currentUserId = this.currentUserId, email: string = ''): void {
+    // console.log('[상태변경][setUserStatus]: ', currentUserId, state);
     const statuscollection = this.db.doc(`status/${currentUserId}`);
     const data = {
       state,
-      email: this.user.email
+      email
     };
     statuscollection.update(data).catch((error) => {
       console.log('[에러]', error);

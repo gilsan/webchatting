@@ -4,7 +4,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import { Observable, BehaviorSubject, from } from 'rxjs';
 import { first, map, distinct, tap, filter, take } from 'rxjs/operators';
 import * as firebase from 'firebase';
-import { IUser } from 'src/app/models/userInfo';
+import { IGroup, IUser } from 'src/app/models/userInfo';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class GroupService {
   user: IUser = { displayName: '', email: '', photoURL: '', uid: '' };
   groupPicDefault = 'assets/images/mountains.jpg';
   groupDocRef;
-  currentGroup;
+  currentGroup: IGroup;
   enteredGroup = new BehaviorSubject<boolean>(false);
   enteredGroup$ = this.enteredGroup.asObservable();
 
@@ -83,12 +83,79 @@ export class GroupService {
       this.currentGroup = group;
       this.enteredGroup.next(true);
     } else {
-      this.currentGroup = '';
+      this.currentGroup = {
+        conversationId: '',
+        creator: '',
+        groupName: '',
+        groupPic: '',
+      };
       this.enteredGroup.next(false);
     }
   }
 
+  addMember(user: IUser): Promise<any> {
+    return new Promise((resolve) => {
+      const groupCollRef = this.afs.collection('groups').ref;
+      const firstlevelquery = groupCollRef.where('groupName', '==', this.currentGroup.groupName);
+      const secondquery = firstlevelquery.where('creator', '==', this.email);
+      // console.log('[addMember] ', user);
+      secondquery.get().then((snapShot) => {
+        // console.log('[102]', user, this.currentGroup.groupName, this.email, snapShot);
+        if (!snapShot.empty) {
+          // console.log('[][105] ', snapShot);
+          this.afs.doc('groups/' + snapShot.docs[0].id).collection('members').add(user);
+          const memberofCollRef = this.afs.collection('memberof').ref;
+          const queryRef = memberofCollRef.where('email', '==', user.email);
+          // tslint:disable-next-line:no-shadowed-variable
+          queryRef.get().then((snapShot) => {
+            // console.log('[][111] ', snapShot);
+            if (snapShot.empty) {
+              this.afs.collection('memberof').add({
+                email: user.email
+              }).then((docRef) => {
+                this.afs.doc('memberof/' + docRef.id).collection('groups').add(this.currentGroup)
+                  .then(() => {
+                    resolve('New Root');
+                  });
+              });
+            } else {
+              this.afs.doc('memberof/' + snapShot.docs[0].id).collection('groups').add(this.currentGroup)
+                .then(() => resolve('OK'));
+            }
+          });  // End of queryRef
+        }
+      }); // End of secodquery
+    });
+  }
 
+  // 구릅에서 회원찿기
+  getMembers(): Promise<any> {
+    return new Promise((resolve) => {
+      const groupCollRef = this.afs.collection('groups').ref;
+      const queryRef = groupCollRef.where('groupName', '==', this.currentGroup.groupName)
+        .where('creator', '==', this.email);
+      queryRef.get().then((snapShot) => {
+        if (!snapShot.empty) {
+          resolve(this.afs.doc('groups/' + snapShot.docs[0].id).collection('members').valueChanges());
+        } else {
+          resolve('Not Exist');
+        }
+
+      });
+    });
+  }
 
 
 }
+
+/**
+ * AngularFirestoreDocument
+ * AngularFirestoreCollection
+ * To retrieve a nested collection use the collection(path: string) method.
+ *   constructor(private afs: AngularFirestore) {
+ * user/<uid>/tasks.
+ * this.userDoc = afs.doc<Item>('user/david');
+ * this.tasks = this.userDoc.collection<Task>('tasks').valueChanges();
+ * }
+ *
+ */

@@ -113,7 +113,7 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
       this.checkFirst = 1;
       if (!messagesObs) {
         this.messages = [];
-        console.log('메세지가 없습니다.!!!');
+        // console.log('메세지가 없습니다.!!!');
       } else {
         messagesObs.subscribe((messages) => {
           this.messages = [];
@@ -212,7 +212,7 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
       if (this.shouldLoad) {
 
         this.count += 5;
-        console.log('scroll is top');
+        // console.log('scroll is top');
         this.messagesService.getAllMessages(this.count);
 
       } else {

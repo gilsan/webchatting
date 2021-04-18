@@ -133,7 +133,7 @@ export class UserService implements OnDestroy {
           if (!snapshot.empty) {
             userProfiles.push(snapshot.docs[0].data());
             if (len === i) {
-              resolve(userProfiles)
+              resolve(userProfiles);
               // this.userDetail.next(userProfiles);
             }
           }
@@ -301,7 +301,7 @@ export class UserService implements OnDestroy {
   updateStatuses(): void {
     this.subs.sink = this.db.collection('status').snapshotChanges(['modified'])
       .subscribe((data) => {
-        console.log('[USER 상태변경][updateStatuses][210]', data);
+        // console.log('[USER 상태변경][updateStatuses][210]', data);
         if (data.length !== 0) {
           this.statusUpdate.next('StatusUpdated');
         }
@@ -316,7 +316,7 @@ export class UserService implements OnDestroy {
       delay(500);
       const len = friends.length - 1;
       friends.forEach((element, i) => {
-        console.log('[][SNAPSHOT]', element.requestemail);
+        // console.log('[][SNAPSHOT]', element.requestemail);
         const queryRef = stateColl.where('email', '==', element.requestemail);
         queryRef.get().then(snapShot => {
           if (!snapShot.empty) {

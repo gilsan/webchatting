@@ -124,12 +124,12 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     this.friends = [];
     this.friendsService.getMyFriends(this.myUid)
       .pipe(
-        tap(data => console.log('MyFriends ... 있음 ...', data)),
+        // tap(data => console.log('MyFriends ... 있음 ...', data)),
       ).subscribe((friends) => {
         this.friends = friends;
         this.userService.getUserDetailsOrg(friends).then((friendsDetails) => {
           this.userService.findUserStatus(friends).then((friendsStates) => {
-            console.log('MyFriends ... 있음 ...', friendsDetails, friendsStates);
+            // console.log('MyFriends ... 있음 ...', friendsDetails, friendsStates);
             this.friends = friendsDetails;
             this.friendState = friendsStates;
             this.isShow = true;
@@ -144,10 +144,10 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     this.friends = [];
     this.friendsService.getMyFriends(this.myUid)
       .pipe(
-        tap(data => console.log('MyFriends 갱신 ... 있음 ...', data)),
+        // tap(data => console.log('MyFriends 갱신 ... 있음 ...', data)),
       ).subscribe((friends) => {
         this.userService.findUserStatus(friends).then((friendsStates) => {
-          console.log('MyFriends 갱신 2 ... 있음 ...', friendsStates);
+          // console.log('MyFriends 갱신 2 ... 있음 ...', friendsStates);
           this.friendState = friendsStates;
         });
       });

@@ -6,6 +6,7 @@ import { GroupService } from './../../services/groups.service';
 import { SubSink } from 'subsink';
 import { MatDialog } from '@angular/material/dialog';
 import { AddMemberComponent } from '../add-member/add-member.component';
+import { GroupInfoComponent } from '../group-info/group-info.component';
 
 
 @Component({
@@ -76,6 +77,13 @@ export class GroupMenuComponent implements OnInit, OnDestroy {
 
   addMember(): void {
     this.dialog.open(AddMemberComponent, {
+      height: '500px',
+      width: '400px'
+    });
+  }
+
+  groupInfo(): void {
+    this.dialog.open(GroupInfoComponent, {
       height: '500px',
       width: '400px'
     });

@@ -24,7 +24,7 @@
         
             <input #fileInput type="file" (change)="onFileInput($event)" style="display:none" />
 
-           <span matTooltip="구룹정보" *ngIf="isOwner">
+           <span matTooltip="구룹정보" *ngIf="isOwner" (click)="groupInfo()">
                <button mat-mini-fab color="warn"  >
                      <mat-icon>info</mat-icon>
                </button>

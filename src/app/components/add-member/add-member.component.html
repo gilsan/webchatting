@@ -4,6 +4,9 @@
    <mat-list-item *ngFor="let user of myFriends; let i = index"  >
      <img matListAvatar [src]="user.photoURL">
      <h3 matLine>{{user.displayName}}</h3>
+     <p matLine *ngIf="!isMember[i]">
+       회원
+     <p>
      <button mat-icon-button (click)="addFriend(user)" *ngIf="isMember[i]">
          <mat-icon color="primary">add_circle</mat-icon>
      </button>

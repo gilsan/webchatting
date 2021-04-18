@@ -1,0 +1,12 @@
+<mat-list>
+   <mat-list-item *ngFor = "let user of members; let i = index">
+     <img matListAvatar [src]="user.photoURL">
+     <h3 matLine>{{user.displayName}}</h3>
+     <p matLine *ngIf="user.email === currentGroup.creator">
+        개설자
+     </p>
+   </mat-list-item>
+</mat-list>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>닫기</button>
+</div>

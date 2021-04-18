@@ -47,7 +47,7 @@ export class LoginPageComponent implements OnInit {
     this.service.login(this.loginForm.value.email, this.loginForm.value.password)
       .subscribe(data => {
 
-        this.service.setUserStatus('online', data.user.uid);
+        this.service.setUserStatus('online', data.user.uid, this.loginForm.value.email);
         this.router.navigate(['/dashboard']);
       },
         (err) => {

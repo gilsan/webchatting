@@ -41,6 +41,7 @@ import { FriendInfoComponent } from './components/friend-info/friend-info.compon
 import { MygroupComponent } from './components/mygroup/mygroup.component';
 import { GroupMenuComponent } from './components/group-menu/group-menu.component';
 import { AddMemberComponent } from './components/add-member/add-member.component';
+import { GroupInfoComponent } from './components/group-info/group-info.component';
 
 
 @NgModule({
@@ -65,7 +66,8 @@ import { AddMemberComponent } from './components/add-member/add-member.component
     FriendInfoComponent,
     MygroupComponent,
     GroupMenuComponent,
-    AddMemberComponent
+    AddMemberComponent,
+    GroupInfoComponent
   ],
   imports: [
     BrowserModule,
@@ -86,7 +88,8 @@ import { AddMemberComponent } from './components/add-member/add-member.component
   ],
   entryComponents: [
     LoadingSpinnerComponent,
-    AddMemberComponent
+    AddMemberComponent,
+    GroupInfoComponent
   ],
   bootstrap: [AppComponent]
 })
