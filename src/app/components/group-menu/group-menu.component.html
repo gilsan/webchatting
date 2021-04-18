@@ -1,0 +1,44 @@
+<div fxLayout="row" fxLayoutAlign="center"  *ngIf="isGroup" >
+   <div fxLayout="column">
+       <img class="centered-and-cropped" [src]="currentGroup.groupPic" width="150" height="150" 
+         style="border-radius:50%">
+       <h3>구룹별명: {{currentGroup.groupName}}</h3>
+
+       <div fxLayout="row" fxLayoutAlign="center">
+           <span matTooltip="멤버추가" *ngIf="isOwner" (click)="addMember()">
+               <button mat-mini-fab color="primary">
+                    <mat-icon>add_circle</mat-icon>
+               </button>
+            </span>
+           <span matTooltip="멤버축출" *ngIf="isOwner">
+               <button mat-mini-fab color="warn"  >
+                     <mat-icon>remove_circle</mat-icon>
+               </button>
+            </span>
+
+           <span matTooltip="이미지변경" *ngIf="isOwner" (click)="fileInput.click()">
+               <button mat-mini-fab color="warn"  >
+                     <mat-icon>contact_page</mat-icon>
+               </button>
+            </span>
+        
+            <input #fileInput type="file" (change)="onFileInput($event)" style="display:none" />
+
+           <span matTooltip="구룹정보" *ngIf="isOwner">
+               <button mat-mini-fab color="warn"  >
+                     <mat-icon>info</mat-icon>
+               </button>
+            </span>
+
+           <span matTooltip="구룹삭제" *ngIf="isOwner">
+               <button mat-mini-fab color="warn" >
+                     <mat-icon>delete</mat-icon>
+               </button>
+            </span>            
+
+
+
+
+        </div>
+   </div>
+</div>

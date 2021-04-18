@@ -23,7 +23,7 @@ export class FriendsService {
   ) { }
 
 
-  getMyFriends(uid, email): Observable<any> {
+  getMyFriends(uid): Observable<any> {
     // console.log('[friend][26]');
     return this.db.collection(`friends/${uid}/myfriends`).valueChanges()
       .pipe(
@@ -32,7 +32,7 @@ export class FriendsService {
   }
 
   getmyFriends(email: string): Promise<any> {
-    // console.log('[friend][34][getmyFriends][친구있나요][1차]', email);
+    // console.log('[FRIEND SERVICE][35]');
     return new Promise((resolve) => {
       const query = this.friendsCollection.ref.where('email', '==', email);
       query.get().then((snapShot) => {

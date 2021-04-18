@@ -12,6 +12,7 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
 
 import * as _ from 'lodash';
 import { concatMap } from 'rxjs/operators';
+import { SafeResourceUrl } from '@angular/platform-browser';
 
 
 @Component({
@@ -24,6 +25,7 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
   private subs = new SubSink();
 
   @ViewChild('scrollMe') private myScroller: ElementRef;
+  sanitizer: any;
   constructor(
     private firebaseAuth: AngularFireAuth,
     private messagesService: MessageService,
@@ -37,12 +39,12 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
 
   showChat: boolean;
   currentUseremail: string;
-  myProfile: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
+  myProfile: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
   messages: IMsg[] = [];
   loadingSpinner = false;
   MyId: string;
   MyAvatar: string;
-  currentChatUser: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
+  currentChatUser: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
 
   newmessage: string;
   checkFirst = 1;
@@ -68,13 +70,9 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
 
     });
 
-
-
-    this.getMessagesList();
-    // this.getSecondMsg();
+    // this.getMessagesList();
     this.addMessageEvent();
-
-
+    this.getMessages2();
   }
 
   ngOnDestroy(): void {
@@ -86,8 +84,15 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
 
       this.currentChatUser = this.messagesService.currentChatUser;
 
-      this.showChat = value;
-      this.getMessages();
+      if (value) {
+        this.showChat = value;
+        // this.getMessages();
+        this.getMessages2();
+      } else {
+        this.showChat = value;
+      }
+
+
     });
   }
 
@@ -99,9 +104,40 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
   }
 
   getMessages(): void {
-
     this.messagesService.getAllMessages(this.count);
   }
+
+  getMessages2(): void {
+
+    this.messagesService.getSecAllMessages(this.count).then((messagesObs) => {
+      this.checkFirst = 1;
+      if (!messagesObs) {
+        this.messages = [];
+        console.log('메세지가 없습니다.!!!');
+      } else {
+        messagesObs.subscribe((messages) => {
+          this.messages = [];
+
+          const reverse = _.reverse(messages);
+          this.messages = reverse; // 순서를 역순으로 만듬
+
+          if (this.messages.length === this.trackMsgCount) {
+            this.shouldLoad = false;
+          } else {
+            this.trackMsgCount = this.messages.length;
+          }
+
+          if (this.checkFirst === 1) {
+            this.openDialog();
+            this.checkFirst += 1;
+          }
+          this.scrollDown();
+
+        });
+      }
+    });
+  }
+
   getMessagesList(): void {
     this.checkFirst = 1;
 
@@ -109,7 +145,6 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
       this.messages = [];
 
       if (msgs.length) {
-        console.log('[신규 메세지 도착]', msgs);
         const reverse = _.reverse(msgs);
         this.messages = reverse; // 순서를 역순으로 만듬
         if (this.messages.length === this.trackMsgCount) {
@@ -134,7 +169,7 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
       this.messagesService.addNewMsg(this.newmessage, this.currentUseremail, type);
       this.messagesService.enterChat(this.currentChatUser);
       this.newmessage = '';
-      this.messagesService.updateMessafeStatuses();
+      this.messagesService.updateMessageState();
     }
   }
 
@@ -204,6 +239,8 @@ export class ChatFeedComponent implements OnInit, OnDestroy {
     }
 
   }
+
+
 
 
 

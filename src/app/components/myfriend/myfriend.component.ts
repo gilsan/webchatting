@@ -2,13 +2,15 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UserService } from './../../services/user.service';
 import { FriendsService } from './../../services/friends.service';
 import { RequestService } from 'src/app/services/request';
-import { IFriend, IRUserInfo, IUser } from 'src/app/models/userInfo';
+import { IFriend, IRUserInfo, IStatus, IUser, IUserState } from 'src/app/models/userInfo';
 import { switchMap, tap, concatMap, map, take, first } from 'rxjs/operators';
 import { from, combineLatest, Observable } from 'rxjs';
 import { FirestoreService } from 'src/app/services/firestore.service';
 import { MessageService } from './../../services/message.service';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { StoreService } from './../../services/store.service';
+import { GroupService } from './../../services/groups.service';
+import { SubSink } from 'subsink';
 
 @Component({
   selector: 'app-myfriend',
@@ -18,13 +20,15 @@ import { StoreService } from './../../services/store.service';
 export class MyfriendComponent implements OnInit, OnDestroy {
 
   friends: IUser[] = [];
-  status = [];
+  state = [];
   myUid: string;
-  myProfile: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
-
+  myProfile: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
+  user: IUser;
   users: IUser[] = [];
   bkupUsers: IUser[];
-
+  private subs = new SubSink();
+  friendState: IUserState[] = [];
+  isShow = false;
   constructor(
     private userService: UserService,
     private friendsService: FriendsService,
@@ -32,55 +36,30 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     private requestService: RequestService,
     private messagesService: MessageService,
     private db: AngularFirestore,
-    private store: StoreService
+    private store: StoreService,
+    private groupService: GroupService
   ) { }
 
   ngOnInit(): void {
+    this.subs.sink = this.userService.currentUser$.subscribe((user) => {
+      this.user = user;
+    });
     this.init();
+
   }
 
   ngOnDestroy(): void {
-    this.friends = [];
-    this.status = [];
-    this.myUid = '';
+    this.subs.unsubscribe();
   }
 
   init(): void {
-    combineLatest([this.friendsService.friendsCollTrigger$,
-    this.firestoreService.currentUid$,
-    ])
-      .subscribe(([value, uid]) => {
-        this.myUid = uid;
 
-        // console.log('[MYFRIEND][51][누가 그렇게 많이 불러!!]', value);
-        if (value === 'Nothing') {  // 내정보 가져오기
-          this.friends = [];
-          this.userService.getUserProfile(this.myUid, 'MYFRIEND INIT')
-            .pipe(
-              map((user: IUser) => user.email),
-              // tap(email => console.log('[MYFRIEND][1][내이메일로 getRequestFriendList 에서 친구검색][58]', email)),
-              switchMap(email => this.friendsService.getRequestFriendList(email, 'MYFRIEND INIT 59')), // requestemail 검색
-              switchMap(friends => from(friends)),
-              map((friend: IRUserInfo) => friend.uid),
-              switchMap(fid => this.userService.getProfile(fid, 'MYFRIEND INIT 62')),
-              // tap(friend => console.log('[MYFRIEND][61][친구의 상세내역!!][63]', friend)),
-            )
-            .subscribe((friend: IUser) => {
-              const idx = this.friends.findIndex(arrfriend => arrfriend.email === friend.email);
-              if (idx === -1) {
-                this.friends.push(friend);
-                // console.log('[MYFRIEND][67][친구의 상세내역!!][67]', friend, this.friends);
-              }
-            });
-        }
-      });
+    this.subs.sink = this.firestoreService.currentUid$.subscribe(uid => this.myUid = uid);
 
     this.getMyProfile();
     this.getFriendsStatus();
     this.friendsUpdate();
-
   }
-
 
   getMyProfile(): void {
     this.userService.getUserProfile(this.myUid, 'MYFRIEND getMyProfile')
@@ -104,10 +83,9 @@ export class MyfriendComponent implements OnInit, OnDestroy {
   getFriendsData(): void {  // 친구정보
     // friends/${uid}/myfriends ㅡ 검색
     let tempUser: IUser[] = [];
-    this.friendsService.getmyFriends(this.myProfile.email).then((res: Observable<any>) => {
-      res.subscribe(data => {
-        // console.log('[MYFRIEND][109][친구내역!!][1]', data);
-        if (data === 'Nothing') {
+    this.friendsService.getmyFriends(this.myProfile.email).then((myfriends: Observable<any>) => {
+      myfriends.subscribe(isThere => {
+        if (isThere === 'Nothing') {
           this.friendsService.getRequestFriendList(this.myProfile.email, 'myfriend')
             .pipe(
               switchMap((friends: IRUserInfo[]) => from(friends)),
@@ -116,37 +94,82 @@ export class MyfriendComponent implements OnInit, OnDestroy {
               map(user => tempUser = [...tempUser, user]),
             )
             .subscribe((friends: IUser[]) => {
-              // console.log('[MYFRIEND][118][친구내역!!][3]', friends);
               this.userService.getStatusFriend(friends, 'MYFRIEND getFriendsData 112');
             });
         }
+        // else if (isThere === 'Exists') {
+        //   this.friendsService.getFriendList()
+        //     .subscribe((friends) => {
+        //       this.friends = friends;
+        //       this.userService.getUserDetailsOrg(friends).then((friendsDetails) => {
+        //         this.userService.findUserStatus(friends).then((friendsStates) => {
+
+        //           this.friends = friendsDetails;
+        //           this.friendState = friendsStates;
+
+        //           console.log('[][화면값] ', this.friends, this.friendState);
+        //         });
+        //       });
+
+        //     });
+        // }
       });
     });
 
-
-    this.friendsService.getMyFriends(this.myUid, this.myProfile.email)
-      .pipe(
-        switchMap(emails => from(emails)),
-        concatMap((friend: IRUserInfo) => this.userService.getUsers(friend.requestemail, 'myFriend Component')),
-        take(1),
-        map(item => item[0]),
-      ).subscribe((data) => {
-        this.friends = [];
-        this.friends.push(data);
-        // console.log('[MYFRIEND][112][친구내역!!][112]', this.friends);
-        // this.userService.getFriendStatus(this.friends);  1안
-        this.userService.getStatusFriend(this.friends, 'MYFRIEND getFriendsData 112');  // 2안
-      });
+    this.getMyFriends();
 
   }
 
-  getFriendsStatus(): void {
-    this.userService.friendsStatus$
-      .subscribe((data: IUser[]) => {
-        this.friends = [];
-        this.friends = data;
-        // console.log('[MYFRIEND][146][친구내역!!][4]', data);
+  getMyFriends(): void {
+    this.friends = [];
+    this.friendsService.getMyFriends(this.myUid)
+      .pipe(
+        tap(data => console.log('MyFriends ... 있음 ...', data)),
+      ).subscribe((friends) => {
+        this.friends = friends;
+        this.userService.getUserDetailsOrg(friends).then((friendsDetails) => {
+          this.userService.findUserStatus(friends).then((friendsStates) => {
+            console.log('MyFriends ... 있음 ...', friendsDetails, friendsStates);
+            this.friends = friendsDetails;
+            this.friendState = friendsStates;
+            this.isShow = true;
+          });
+        });
+        // this.userService.getFriendStatus(this.friends);  1안
+        // this.userService.getStatusFriend(this.friends, 'MYFRIEND getFriendsData 112');  // 2안
       });
+  }
+
+  updateMyFriendsState(): void {
+    this.friends = [];
+    this.friendsService.getMyFriends(this.myUid)
+      .pipe(
+        tap(data => console.log('MyFriends 갱신 ... 있음 ...', data)),
+      ).subscribe((friends) => {
+        this.userService.findUserStatus(friends).then((friendsStates) => {
+          console.log('MyFriends 갱신 2 ... 있음 ...', friendsStates);
+          this.friendState = friendsStates;
+        });
+      });
+  }
+
+  getFriendsStatus(): void {
+    // this.subs.sink = this.userService.friendsStatus$
+    //   .subscribe((data: IUser[]) => {
+    //     console.log(' [상태변환] ', data);
+    //     // this.friends = [];
+    //     this.friendState = [];
+    //     // this.friends = data;
+    //     // data.forEach((el, i) => {
+    //     //   this.friendState.push({ state: el.state });
+    //     // });
+
+    //     console.log('[MYFRIEND][183][친구내역!!]***', data);
+    //   });
+
+    // this.userService.updateStatuses2().subscribe((state) => {
+    //   console.log('[MYFRIEND][158][상태감시]====', state);
+    // });
   }
 
   friendsUpdate(): void {
@@ -154,14 +177,19 @@ export class MyfriendComponent implements OnInit, OnDestroy {
       .subscribe(value => {
         if (value === 'StatusUpdated') {
           if (this.friends.length > 0) {
-            this.getFriendsData();
+            // this.getFriendsData();
+            this.getMyFriends();
+
           }
         }
       });
   }
 
+
+
   enterChat(user): void {
     this.messagesService.enterChat(user);
+    this.groupService.enterGroup('closed');
   }
 
 }

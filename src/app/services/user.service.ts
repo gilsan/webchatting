@@ -3,13 +3,14 @@ import { AngularFireAuth } from '@angular/fire/auth';
 
 import { AngularFirestore } from '@angular/fire/firestore';
 import * as firebase from 'firebase';
-import { from, Observable, BehaviorSubject, pipe, of } from 'rxjs';
-import { concatMap, filter, first, map, switchMap, take, tap, distinct, last } from 'rxjs/operators';
+import { from, Observable, BehaviorSubject, pipe, of, Subject } from 'rxjs';
+import { concatMap, filter, first, map, switchMap, take, tap, distinct, last, delay } from 'rxjs/operators';
 import { AngularFireStorage } from '@angular/fire/storage';
 import { IUser } from '../models/userInfo';
 import { IStatus } from './../models/userInfo';
 import { StoreService } from './store.service';
 import { SubSink } from 'subsink';
+import { EVENT_MANAGER_PLUGINS } from '@angular/platform-browser';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,10 @@ export class UserService implements OnDestroy {
   statusUpdate = new BehaviorSubject<string>('noep');
   statusUpdate$ = this.statusUpdate.asObservable();
 
+  userDetail = new Subject();
+  userDetail$ = this.userDetail.asObservable();
+
+  user: IUser;
   private subs = new SubSink();
 
   uid: string;
@@ -42,6 +47,7 @@ export class UserService implements OnDestroy {
           this.getUserProfile(this.uid)
             .subscribe(user => {
               // console.log('[USER][34][내프로파일]', user);
+              this.user = user;
               this.currentUser.next(user);
             });
         } else {
@@ -114,6 +120,46 @@ export class UserService implements OnDestroy {
     return from(this.storage.upload(`profilepics/${uid}`, file));
   }
 
+
+  // 사용자 프로파일 찿기
+  getUserDetailsOrg(users): Promise<any> {
+    return new Promise((resolve) => {
+      const userProfiles = [];
+      const collRef = this.db.collection('users').ref;
+      const len = users.length - 1;
+      users.forEach((element, i) => {
+        const query = collRef.where('email', '==', element.requestemail);
+        query.get().then((snapshot) => {
+          if (!snapshot.empty) {
+            userProfiles.push(snapshot.docs[0].data());
+            if (len === i) {
+              resolve(userProfiles)
+              // this.userDetail.next(userProfiles);
+            }
+          }
+        });
+      });
+    });
+
+  }
+
+  // 전체사용자 찿기
+  getAllUsersOrg(): Observable<any> {
+    return this.db.collection('users', ref => ref.orderBy('email')).valueChanges()
+      .pipe(
+        map((users) => {
+          users.forEach((element: any, i) => {
+            if (element.email === this.user.email) {
+              users.splice(i, 1);
+            }
+          });
+          return users;
+        })
+      );
+  }
+
+
+
   // 그림 URL 가저오기
   downloadProfilePic(uid): Observable<any> {
     // console.log('[user][90]');
@@ -122,7 +168,7 @@ export class UserService implements OnDestroy {
 
   // 모든 친구가져오기
   getAllUsers(email: string): Observable<any> {
-    // console.log('[user][117][getAllUsers]', email);
+
     return this.db.collection('users', ref => ref.where('email', '!=', email).limit(4)).get()
       .pipe(
         map(info => info.docs.map(doc => doc.data()))
@@ -145,7 +191,6 @@ export class UserService implements OnDestroy {
   }
 
   getAllUsers2(email: string): Observable<any> {
-    // console.log('[user][114]');
     return from(this.db.collection('users', ref => ref.where('email', '!=', email)).get())
       .pipe(
         map(info => info.docs.map(doc => doc.data()))
@@ -154,7 +199,6 @@ export class UserService implements OnDestroy {
 
   // 친구 정보 가져오기
   getUsers(email: string, title: string = ''): Observable<IUser[]> {
-    // console.log('[user][123]');
     return this.db.collection('users', ref => ref.where('email', '==', email)).get()
       .pipe(
         map((result) => result.docs.map(snap => snap.data() as IUser)),
@@ -164,7 +208,6 @@ export class UserService implements OnDestroy {
 
   // 특정 사용자 프로파일
   getUserDetails(users): any {
-    // console.log('[user][135]');
     const userProfiles = [];
     const collRef = this.db.collection('users').ref;
     users.forEach((element) => {
@@ -178,6 +221,26 @@ export class UserService implements OnDestroy {
 
     return userProfiles;
   }
+
+  findUserDetail(users): Promise<any> {
+    return new Promise((resolve) => {
+      const userProfiles = [];
+      const len = users.length - 1;
+      const collRef = this.db.collection('users').ref;
+      users.forEach((element) => {
+        const query = collRef.where('email', '==', element.sender);
+        query.get().then((snapShot) => {
+          if (snapShot.empty) {
+            userProfiles.push(snapShot.docs[0].data());
+            if (len === 1) {
+              resolve(userProfiles);
+            }
+          }
+        });
+      });
+    });
+  }
+
 
   instantSearch(startValue, endValue): Observable<any> {
     // console.log('[user][51]');
@@ -210,6 +273,8 @@ export class UserService implements OnDestroy {
   }
 
 
+
+
   getStatusFriend(friends: IUser[], caller: string): void {
     // console.log('[FRIEND][209][getStatusFriend] ', caller);
     const friendStatus = [];
@@ -217,9 +282,9 @@ export class UserService implements OnDestroy {
       this.db.doc(`status/${element.uid}`).get()
         .pipe(
           map(result => result.data())
-        ).subscribe((status: IStatus) => {
-          const value = status.status;
-          const newStatus = { status: value, ...element };
+        ).subscribe((state: IStatus) => {
+          const value = state.status;
+          const newStatus = { state: value, ...element };
           friendStatus[i] = newStatus;
           if (i === friends.length - 1) {
             // console.log('[FRIEND][220][getFriendStatus][2]', friendStatus);
@@ -230,16 +295,44 @@ export class UserService implements OnDestroy {
 
   }
 
+
+
   //// status 상태 변경
   updateStatuses(): void {
     this.subs.sink = this.db.collection('status').snapshotChanges(['modified'])
       .subscribe((data) => {
-        // console.log('[USER 상태변경][updateStatuses][210]', data);
+        console.log('[USER 상태변경][updateStatuses][210]', data);
         if (data.length !== 0) {
           this.statusUpdate.next('StatusUpdated');
         }
       });
   }
+
+
+  findUserStatus(friends): Promise<any> {
+    return new Promise((resolve) => {
+      const friendState = [];
+      const stateColl = this.db.collection('status').ref;
+      delay(500);
+      const len = friends.length - 1;
+      friends.forEach((element, i) => {
+        console.log('[][SNAPSHOT]', element.requestemail);
+        const queryRef = stateColl.where('email', '==', element.requestemail);
+        queryRef.get().then(snapShot => {
+          if (!snapShot.empty) {
+            friendState.push(snapShot.docs[0].data());
+            //  console.log('[][SNAPSHOT]', snapShot, element, snapShot.docs[0].data(), friendState);
+            if (len === i) {
+              resolve(friendState);
+            }
+          }
+        });
+      });
+
+    });
+
+  }
+
 
 
 

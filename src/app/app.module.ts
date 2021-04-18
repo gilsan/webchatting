@@ -38,6 +38,9 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
 import { ScrollableDirective } from './directives/scrollable.directive';
 import { ActivityComponent } from './components/activity/activity.component';
 import { FriendInfoComponent } from './components/friend-info/friend-info.component';
+import { MygroupComponent } from './components/mygroup/mygroup.component';
+import { GroupMenuComponent } from './components/group-menu/group-menu.component';
+import { AddMemberComponent } from './components/add-member/add-member.component';
 
 
 @NgModule({
@@ -59,7 +62,10 @@ import { FriendInfoComponent } from './components/friend-info/friend-info.compon
     LoadingSpinnerComponent,
     ScrollableDirective,
     ActivityComponent,
-    FriendInfoComponent
+    FriendInfoComponent,
+    MygroupComponent,
+    GroupMenuComponent,
+    AddMemberComponent
   ],
   imports: [
     BrowserModule,
@@ -79,7 +85,8 @@ import { FriendInfoComponent } from './components/friend-info/friend-info.compon
     AuthguardService
   ],
   entryComponents: [
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    AddMemberComponent
   ],
   bootstrap: [AppComponent]
 })

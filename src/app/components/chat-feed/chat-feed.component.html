@@ -40,24 +40,30 @@
                    <div class="img_cont_msg">
                        <img [src]="MyAvatar" class="rounded-circle user_img_msg">
                    </div>
-                   <div class="msg_cotainer"  *ngIf="isPicMsg">
+ 
+                   <div class="msg_cotainer"  *ngIf="!msg.isPic">
                         {{msg.message}}
                         <span class="msg_time"  style="width: 85px;" *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate}}</span>
                     </div>
+  
                       <!--  그림 메세지  -->
-                     <div class="msg_cotainer" *ngIf="!isPicMsg">
-                         <img src="{{msg.message}}"> 
+                     <div class="msg_cotainer" *ngIf="msg.isPic">
+                       
+                         <img [src]="msg.message" > 
+                      
+                         <span class="msg_time"  style="width: 85px;" *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate}}</span>
                      </div>
                       <!--         -->
                  </div>
                  <div class="d-flex justify-content-end mb-4"  *ngIf="msg.sentBy !== MyId">
-                    <div class="msg_cotainer_send"  *ngIf="isPicMsg">
+                    <div class="msg_cotainer_send"  *ngIf="!msg.isPic">
                        {{msg.message}}
                        <span class="msg_time_send" style="width: 85px;"  *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate }}</span>
                     </div>
                       <!--  그림 메세지  -->
-                     <div class="msg_cotainer" *ngIf="!isPicMsg">
-                         <img src="{{msg.message}}"> 
+                     <div class="msg_cotainer" *ngIf="msg.isPic">
+                         <img [src]="msg.message"> 
+                         <span class="msg_time"  style="width: 85px;" *ngIf="msg.timestamp">{{ msg.timestamp.toDate() | smartDate}}</span>
                      </div>
                       <!--         -->
                     <div class="img_cont_msg">

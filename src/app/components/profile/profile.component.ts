@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IUser } from 'src/app/models/userInfo';
 import { FirestoreService } from 'src/app/services/firestore.service';
 import { UserService } from './../../services/user.service';
 import { concatMap, distinct, tap } from 'rxjs/operators';
-
+import { SubSink } from 'subsink';
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
 
   nickNameedit = false;
   newNickName = '';
@@ -17,22 +17,24 @@ export class ProfileComponent implements OnInit {
   uid: string;
   selectedFiles: FileList;
   spinnerToggle = false;
+  private subs = new SubSink();
 
   constructor(
     private userService: UserService,
     private firestoreService: FirestoreService,
-  ) {
-
-
-  }
+  ) { }
 
   ngOnInit(): void {
 
     this.init();
   }
 
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
   init(): void {
-    this.firestoreService.currentUid$.subscribe((uid: string) => {
+    this.subs.sink = this.firestoreService.currentUid$.subscribe((uid: string) => {
       this.uid = uid;
     });
     this.userService.currentUser$.subscribe((user: IUser) => {

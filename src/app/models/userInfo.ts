@@ -3,9 +3,15 @@ export class IUser {
   displayName: string;
   email: string;
   photoURL: string;
-  status?: string;
+  state?: string;
   uid?: string;
 
+}
+
+export class IUserState {
+  state: string;
+  email: string;
+  uid: string;
 }
 
 export interface IFriend {
@@ -35,9 +41,23 @@ export interface IConversation {
   messageId: string;
   myemail: string;
   wihtWhom: string;
+  timestamp: string;
 }
 export interface IMsg {
   message: string;
   timestamp: string;
   sentBy: string;
+}
+
+export interface IGroup {
+  conversationId: string;
+  creator: string;
+  groupName: string;
+  groupPic: string;
+}
+
+export interface IMember {
+  displayName: string;
+  email: string;
+  photoURL: string;
 }

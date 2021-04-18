@@ -25,10 +25,13 @@ export class MessageService implements OnDestroy {
   addMsg$: Observable<any>;
 
 
-  currentChatUser: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
+  currentChatUser: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
   email: string;
+  user: IUser = { displayName: '', email: '', photoURL: '', uid: '' };
   firstDocId: string;
   secondDocId: string;
+
+
 
   private subs = new SubSink();
 
@@ -37,13 +40,26 @@ export class MessageService implements OnDestroy {
     private db: AngularFirestore,
     private storage: AngularFireStorage
   ) {
-    this.updateMessafeStatuses();
+    this.updateMessageState();
+    this.auth.currentUser.then(user => {
+      this.email = user.email;
+      this.getMyProfile(this.email);
+    });
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
 
+  // 내정보 찿기
+  getMyProfile(email): void {
+    this.db.collection('users', ref => ref.where('email', '==', this.email)).get()
+      .subscribe(snaps => {
+        snaps.forEach(snap => {
+          this.user = snap.data() as IUser;
+        });
+      });
+  }
 
   enterChat(user): void {
 
@@ -52,11 +68,22 @@ export class MessageService implements OnDestroy {
       this.enteredChat.next(true);
     } else {
       this.enteredChat.next(false);
-      this.currentChatUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
+      this.currentChatUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
     }
 
   }
 
+  // testAddmsg(): void {
+  //   const collRef = this.db.collection('conversations').ref;
+  //   const queryRef = collRef.where('myemail', '==', this.email)
+  //     .where('withWhom', '==', this.currentChatUser.email);
+  //   queryRef.get().then((snapShot) => {
+  //     console.log('[저장물확인][2]', snapShot);
+  //     if (snapShot.empty) {
+  //     } else {
+  //     }
+  //   });
+  // }
 
   addNewMsg(newMsg: string, myemail: string, type: string = 'txt'): void {
     let isPic;
@@ -66,7 +93,7 @@ export class MessageService implements OnDestroy {
       isPic = true;
     }
 
-    const collRef = this.db.collection('conversaions').ref;
+    const collRef = this.db.collection('conversations').ref;
     const queryRef = collRef.where('myemail', '==', myemail)
       .where('withWhom', '==', this.currentChatUser.email);
 
@@ -92,7 +119,8 @@ export class MessageService implements OnDestroy {
               this.db.collection('messages').doc(docRef.id).collection('msgs').add({
                 message: newMsg,
                 timestamp: firebase.default.firestore.FieldValue.serverTimestamp(),
-                sentBy: myemail,
+                sentBy: myemail,  // 보낸사람
+                receiveBy: this.currentChatUser.email,  // 받는 사람
                 isPic
               }).then(() => {
                 this.db.collection('conversations').doc(this.firstDocId).update({
@@ -111,15 +139,15 @@ export class MessageService implements OnDestroy {
         });
       } else {
         const conversation: any = snapShot.docs[0].data();
-        const messageId = conversation.messagId;
+        const messageId = conversation.messageId;
         this.db.collection('messages').doc(messageId).collection('msgs').add({
           message: newMsg,
           timestamp: firebase.default.firestore.FieldValue.serverTimestamp(),
           sentBy: myemail,
+          receiveBy: this.currentChatUser.email,  // 받는 사람
           isPic
         }).then(() => {
           console.log('확인 Firebase else 파트,  저장했습니다.');
-
         });
       }
 
@@ -129,10 +157,10 @@ export class MessageService implements OnDestroy {
 
 
   getAllMessages(count): void {
-
     from(this.auth.currentUser)
       .pipe(
         map(data => data.email),
+        // tap(email => console.log('[메세지 가져오기][]', email)),
         delay(600),
         map(email => {
           const collRef = this.db.collection('conversations').ref;
@@ -143,6 +171,7 @@ export class MessageService implements OnDestroy {
         switchMap(ref => ref.get()),
         map(snapshots => snapshots.docs.map(doc => doc.data())),
         map(lists => lists.map((list: IConversation) => list.messageId)),
+        // tap(list => console.log('[메세지 가져오기][]', this.currentChatUser.email))
       ).subscribe((ids: string[]) => {
 
         const msgs: IMsg[] = [];
@@ -166,31 +195,30 @@ export class MessageService implements OnDestroy {
       });
   }
 
-  getSecAllMessages(): void {
+  getSecAllMessages(count): Promise<any> {
+    return new Promise((resolve) => {
+      const collRef = this.db.collection('conversations').ref;
+      const queryRef = collRef.where('myemail', '==', this.email)
+        .where('withWhom', '==', this.currentChatUser.email);
 
-    from(this.auth.currentUser)
-      .pipe(
-        map(data => data.email),
-        delay(600),
-        map(email => {
-          const collRef = this.db.collection('conversations').ref;
-          const queryRef = collRef.where('myemail', '==', email)
-            .where('withWhom', '==', this.currentChatUser.email);
-          return queryRef;
-        }),
-        map(ref => ref.onSnapshot(() => {
-
-        })),
-
-      ).subscribe((data) => {
-        console.log(data);
+      queryRef.get().then((snapshot) => {
+        if (snapshot.empty) {
+          resolve(false);
+        } else {
+          const data: any = snapshot.docs[0].data();
+          const uid = data.messageId;
+          // tslint:disable-next-line:max-line-length
+          resolve(this.db.collection('messages').doc(`${uid}`).collection('msgs', ref => ref.orderBy('timestamp', 'desc').limit(count)).valueChanges());
+        }
       });
+    });
+
   }
 
 
 
   //// 메세지 상태 변경
-  updateMessafeStatuses(): void {
+  updateMessageState(): void {
     this.subs.sink = this.db.collection('messages').snapshotChanges(['added'])
       .subscribe((data) => {
 
@@ -238,6 +266,7 @@ export class MessageService implements OnDestroy {
   downloadProfilePic(uid): Observable<any> {
     return this.storage.ref(`picmessages/${uid}`).getDownloadURL();
   }
+
 
 
 

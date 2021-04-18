@@ -5,6 +5,7 @@ import { FriendsService } from './../../services/friends.service';
 import { RequestService } from 'src/app/services/request';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
+import { MessageService } from 'src/app/services/message.service';
 
 @Component({
   selector: 'app-side-bar',
@@ -18,6 +19,7 @@ export class SideBarComponent implements OnInit {
     private friendsService: FriendsService,
     private requestService: RequestService,
     private db: AngularFirestore,
+    private messagesService: MessageService,
   ) { }
 
   requestRef: AngularFirestoreCollection = this.db.collection('hong');
@@ -26,9 +28,8 @@ export class SideBarComponent implements OnInit {
   }
 
   storeTest(): void {
-    this.deleteItem('nAmNPTJptnCCQv6zbaeZ').subscribe(data => {
-      console.log('side bar test: ', data);
-    });
+    // this.messagesService.testAddmsg();
+
   }
 
   deleteItem(id): Observable<any> {

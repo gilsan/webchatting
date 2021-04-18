@@ -1,0 +1,40 @@
+<div class="content">
+
+       <div fxLayout="row" fxLayoutAlign="center">
+        
+         <mat-form-field  *ngIf="showAdd">
+           <input matInput placeholder="구룹명입력" 
+            type="text" [(ngModel)]="groupName">
+         </mat-form-field>        
+
+         <span matTooltip="구릅생성">
+           <button   mat-icon-button *ngIf="showAdd" (click)="createGroup()">
+              <mat-icon color="primary">check</mat-icon>
+           </button>
+         </span>
+
+         <span matTooltip="취소">
+           <button   mat-icon-button (click)="addGroup()" *ngIf="showAdd">
+              <mat-icon color="warn">cancel</mat-icon>
+           </button>
+         </span>
+
+         <span matTooltip="구룹생성">
+             <button mat-mini-fab color="primary" *ngIf="!showAdd" (click)="addGroup()">
+               <mat-icon>add</mat-icon>
+             </button>
+             <button mat-mini-fab color="primary" *ngIf="!showAdd" (click)="refreshList()">  
+               <mat-icon>refresh</mat-icon>
+             </button>
+         </span>
+  
+       </div>
+       <mat-list>
+          <mat-list-item *ngFor="let group of myGroups" (click)="openGroup(group)">
+             <img matListAvatar [src]="group.groupPic">
+             <h3 matLine>{{group.groupName}}</h3>
+          </mat-list-item>
+       </mat-list>
+</div>
+
+

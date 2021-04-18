@@ -30,6 +30,7 @@ export class FirestoreService {
     this.inituser();
 
     this.firebaseAuth.authState.subscribe((user) => {
+      this.user = user;
       this.authState = user;
     });
   }
@@ -75,11 +76,12 @@ export class FirestoreService {
 
   }
 
-  setUserStatus(status, currentUserId = this.currentUserId): void {
-    // console.log('[상태변경][currentUserId]: ', currentUserId, status);
+  setUserStatus(state, currentUserId = this.currentUserId): void {
+    // console.log('[상태변경][currentUserId]: ', currentUserId, state);
     const statuscollection = this.db.doc(`status/${currentUserId}`);
     const data = {
-      status
+      state,
+      email: this.user.email
     };
     statuscollection.update(data).catch((error) => {
       console.log('[에러]', error);
@@ -116,8 +118,9 @@ export class FirestoreService {
   setUserData(email: string, displayName: string, photoURL: string): void {
 
     this.db.doc(`status/${this.currentUserId}`).set({
-      status: 'online',
-      uid: this.currentUserId
+      state: 'online',
+      uid: this.currentUserId,
+      email: this.user.email
     });
 
     this.db.doc(`users/${this.currentUserId}`).set({

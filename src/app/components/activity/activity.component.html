@@ -1,6 +1,6 @@
  <mat-accordion  multi>
    
-  <mat-expansion-panel hidetoggle="true" expanded="false">
+  <mat-expansion-panel hidetoggle="true" [expanded]="isMessageExpand">
     <mat-expansion-panel-header>
       <mat-panel-title>
          채팅자 정보
@@ -9,13 +9,13 @@
      <app-friend-info></app-friend-info>
   </mat-expansion-panel> 
 
-  <mat-expansion-panel hidetoggle="true" expanded="false">
+  <mat-expansion-panel hidetoggle="true" [expanded]="isGroupExpand">
     <mat-expansion-panel-header>
       <mat-panel-title>
-         구룹안내
+         구룹
       </mat-panel-title>
     </mat-expansion-panel-header>
-     
+    <app-group-menu></app-group-menu> 
   </mat-expansion-panel>
 
   <mat-expansion-panel hidetoggle="true" expanded="false">

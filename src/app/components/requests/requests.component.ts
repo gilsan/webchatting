@@ -14,7 +14,7 @@ import { UserService } from './../../services/user.service';
 export class RequestsComponent implements OnInit {
 
   uid: string;
-  myProfile: IUser = { displayName: '', email: '', photoURL: '', status: '', uid: '' };
+  myProfile: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
   requests: IUser[] = [];
   constructor(
     private userService: UserService,
@@ -125,7 +125,7 @@ export class RequestsComponent implements OnInit {
         if (data === 'none') {
           this.requestService.addFriend2(this.myProfile.email, this.uid)
             .pipe(
-              // concatMap(() => this.requestService.addFriendSub2(request.email, this.uid, this.myProfile.email))
+              concatMap(() => this.requestService.addFriendSub2(request.email, request.uid, this.myProfile.email)),
               concatMap(() => this.requestService.addFriendSub2(this.myProfile.email, this.uid, request.email))
             )
             .subscribe((result) => {
@@ -142,10 +142,14 @@ export class RequestsComponent implements OnInit {
             .subscribe((result) => {
               console.log(result);
               if (result) {
-                this.deleteRequestItem(request.email);
-                this.requests = [];
-                this.init();
-                this.snackBar.open('친구 요청을 승인 하였습니다.', '닫기', { duration: 3000 });
+                this.requestService.addFriendWhenNoExist(request.email, request.uid, this.myProfile.email)
+                  .subscribe((res) => {
+                    this.deleteRequestItem(request.email);
+                    this.requests = [];
+                    this.init();
+                    this.snackBar.open('친구 요청을 승인 하였습니다.', '닫기', { duration: 3000 });
+                  });
+
               }
             });
         }
