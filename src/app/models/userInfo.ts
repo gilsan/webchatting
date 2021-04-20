@@ -61,3 +61,13 @@ export interface IMember {
   email: string;
   photoURL: string;
 }
+
+
+export interface INotifaction {
+  receiver: string;
+  receiverName: string;
+  sender: string;
+  senderPic: string;
+  senderName: string;
+  timestamp: string;
+}

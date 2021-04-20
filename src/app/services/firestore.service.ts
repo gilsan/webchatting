@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { AngularFirestore } from '@angular/fire/firestore';
@@ -6,14 +6,17 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { from, Observable, BehaviorSubject, Subject } from 'rxjs';
 import { first, map, tap } from 'rxjs/operators';
 import { IUser } from '../models/userInfo';
-
+import { SubSink } from 'subsink';
+import { MessageService } from './message.service';
+import { GroupService } from './groups.service';
 
 @Injectable({
   providedIn: 'root'
 })
 
-export class FirestoreService {
+export class FirestoreService implements OnDestroy {
 
+  private subs = new SubSink();
   private authState: any;
   currentUserId = '';
 
@@ -26,10 +29,12 @@ export class FirestoreService {
   constructor(
     private db: AngularFirestore,
     private firebaseAuth: AngularFireAuth,
+    private groupService: GroupService,
+    private messageService: MessageService
   ) {
     this.inituser();
 
-    this.firebaseAuth.authState.subscribe((user) => {
+    this.subs.sink = this.firebaseAuth.authState.subscribe((user) => {
       this.user = user;
       this.authState = user;
       // console.log('[35][LOGIN][현재 authState] === ', user, this.authState);
@@ -38,8 +43,12 @@ export class FirestoreService {
     this.firebaseAuth.currentUser.then((user) => {
       this.user = user;
       this.authState = user;
-      console.log('[39][LOGIN][현재 사용자 정보] ====', user);
+      // console.log('[39][LOGIN][현재 사용자 정보] ====', user);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   inituser(): void {
@@ -114,6 +123,8 @@ export class FirestoreService {
         tap(res => {
           localStorage.removeItem('user');
           this.subject$.next(false);
+          this.messageService.enterChat('closed');
+          this.groupService.enterGroup('closed');
           this.setUserStatus('offline');
         })
       );

@@ -7,6 +7,7 @@ import { MessageService } from 'src/app/services/message.service';
 import { Observable } from 'rxjs';
 import { IGroup } from 'src/app/models/userInfo';
 import { filter, map, tap } from 'rxjs/operators';
+import { isArray } from 'lodash';
 
 @Component({
   selector: 'app-mygroup',
@@ -17,7 +18,7 @@ export class MygroupComponent implements OnInit, OnDestroy {
 
   groupName: string;
   showAdd = false;
-  myGroups = [];
+  myGroups: IGroup[] = [];
 
   private subs = new SubSink();
   constructor(
@@ -28,16 +29,23 @@ export class MygroupComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.groupService.getGroups().then((groupObs: Observable<any>) => {
-      groupObs
+      this.subs.sink = groupObs
         .pipe(
           filter(val => val !== undefined),
           map(val => val[0]),
-          tap(val => console.log('TAP [ngOnInit] ', val)),
         )
         .subscribe((allGroups) => {
-          // console.log('===== ', allGroups);
-          // this.myGroups = allGroups;
+          // console.log('===== ', isArray(allGroups), allGroups);
+          const arr = isArray(allGroups);
+          if (arr) {
+            this.myGroups = allGroups;
+          } else {
+            if (allGroups !== undefined) {
+              this.myGroups.push(allGroups);
+              // console.log('****** ', this.myGroups[0].groupName);
+            }
 
+          }
 
         });
     });

@@ -1,19 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, NgForm, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { FirestoreService } from '../../services/firestore.service';
 import { SignupPageComponent } from '../signup-page/signup-page.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { SubSink } from 'subsink';
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss']
 })
-export class LoginPageComponent implements OnInit {
+export class LoginPageComponent implements OnInit, OnDestroy {
 
   loginForm: FormGroup;
+  private subs = new SubSink();
+
   constructor(
     private fb: FormBuilder,
     private service: FirestoreService,
@@ -24,6 +26,10 @@ export class LoginPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadForm();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadForm(): void {
@@ -44,7 +50,7 @@ export class LoginPageComponent implements OnInit {
 
   login(): void {
 
-    this.service.login(this.loginForm.value.email, this.loginForm.value.password)
+    this.subs.sink = this.service.login(this.loginForm.value.email, this.loginForm.value.password)
       .subscribe(data => {
         // 현사용자
 

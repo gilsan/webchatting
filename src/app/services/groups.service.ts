@@ -28,15 +28,18 @@ export class GroupService {
     private storage: AngularFireStorage
   ) {
     this.afauth.currentUser.then(user => {
-      console.log('group:afauth.currentUser:[31][group SERVICE]  ', user);
-      this.email = user.email;
-      this.getMyProfile(this.email);
+      // console.log('group:afauth.currentUser:[31][group SERVICE]  ', user);
+      if (user !== null) {
+        this.email = user.email;
+        this.getMyProfile(this.email);
+      }
+
     });
   }
 
   // 내정보 찿기
   getMyProfile(email): void {
-    console.log('group:afauth.currentUser:[31]  ', email, this.email);
+    // console.log('group:afauth.currentUser:[31]  ', email, this.email);
     this.afs.collection('users', ref => ref.where('email', '==', this.email)).get()
       .subscribe(snaps => {
         snaps.forEach(snap => {
@@ -88,12 +91,12 @@ export class GroupService {
       const memberofCollRef = this.afs.collection('memberof').ref;
       const queryRef = memberofCollRef.where('email', '==', this.email);
       queryRef.get().then((snapShot) => {
-        console.log('[구룹가져오기][93] ', this.email, snapShot);
+        // console.log('[구룹가져오기][93] ', this.email, snapShot);
         if (snapShot.empty) {
-          console.log('[구룹가져오기][93] ', this.email, snapShot);
+          // console.log('[구룹가져오기][93] ', this.email, snapShot);
           resolve(createdGroupObs);
         } else {
-          console.log('[구룹가져오기] [96]', this.email, snapShot);
+          // console.log('[구룹가져오기] [96]', this.email, snapShot);
           const memberofObs = this.afs.doc('memberof/' + snapShot.docs[0].id).collection('groups').valueChanges();
           resolve(combineLatest([createdGroupObs, memberofObs]));
 
@@ -194,6 +197,7 @@ export class GroupService {
                 queryref.get().then((snapshot) => {
                   if (!snapshot.empty) {
                     const groupsubCollRef = this.afs.doc('memberof/' + snapshot.docs[0].id).collection('groups').ref;
+                    // tslint:disable-next-line:no-shadowed-variable
                     const query = groupsubCollRef.where('groupName', '==', this.currentGroup.groupName)
                       .where('creator', '==', this.currentGroup.creator);
                     query.get().then((snapSHot) => {

@@ -62,7 +62,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
   }
 
   getMyProfile(): void {
-    this.userService.getUserProfile(this.myUid, 'MYFRIEND getMyProfile')
+    this.subs.sink = this.userService.getUserProfile(this.myUid, 'MYFRIEND getMyProfile')
       .pipe(
         tap(user => this.myProfile = user),
         map(user => user.email),
@@ -84,7 +84,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
     // friends/${uid}/myfriends ㅡ 검색
     let tempUser: IUser[] = [];
     this.friendsService.getmyFriends(this.myProfile.email).then((myfriends: Observable<any>) => {
-      myfriends.subscribe(isThere => {
+      this.subs.sink = myfriends.subscribe(isThere => {
         if (isThere === 'Nothing') {
           this.friendsService.getRequestFriendList(this.myProfile.email, 'myfriend')
             .pipe(
@@ -122,7 +122,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
 
   getMyFriends(): void {
     this.friends = [];
-    this.friendsService.getMyFriends(this.myUid)
+    this.subs.sink = this.friendsService.getMyFriends(this.myUid)
       .pipe(
         // tap(data => console.log('MyFriends ... 있음 ...', data)),
       ).subscribe((friends) => {
@@ -142,7 +142,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
 
   updateMyFriendsState(): void {
     this.friends = [];
-    this.friendsService.getMyFriends(this.myUid)
+    this.subs.sink = this.friendsService.getMyFriends(this.myUid)
       .pipe(
         // tap(data => console.log('MyFriends 갱신 ... 있음 ...', data)),
       ).subscribe((friends) => {
@@ -173,7 +173,7 @@ export class MyfriendComponent implements OnInit, OnDestroy {
   }
 
   friendsUpdate(): void {
-    this.userService.statusUpdate$
+    this.subs.sink = this.userService.statusUpdate$
       .subscribe(value => {
         if (value === 'StatusUpdated') {
           if (this.friends.length > 0) {

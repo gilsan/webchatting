@@ -3,11 +3,12 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AngularFireStorage } from '@angular/fire/storage';
 
-import { Observable, BehaviorSubject, of, from, Subject } from 'rxjs';
+import { Observable, BehaviorSubject, of, from, Subject, combineLatest } from 'rxjs';
 import { concatMap, delay, distinct, finalize, first, map, switchMap, take, tap } from 'rxjs/operators';
-import { IConversation, IMsg, IUser } from '../models/userInfo';
+import { IConversation, IGroup, IMsg, INotifaction, IUser } from '../models/userInfo';
 import * as firebase from 'firebase';
 import { SubSink } from 'subsink';
+import { GroupService } from 'src/app/services/groups.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,26 +25,30 @@ export class MessageService implements OnDestroy {
   addMessage$ = this.addMessage.asObservable();
   addMsg$: Observable<any>;
 
-
   currentChatUser: IUser = { displayName: '', email: '', photoURL: '', state: '', uid: '' };
   email: string;
   user: IUser = { displayName: '', email: '', photoURL: '', uid: '' };
   firstDocId: string;
   secondDocId: string;
 
-
+  groupMsgFlag = new Subject();
+  groupMsgFlag$ = this.groupMsgFlag.asObservable();
 
   private subs = new SubSink();
 
   constructor(
     private auth: AngularFireAuth,
     private db: AngularFirestore,
-    private storage: AngularFireStorage
+    private storage: AngularFireStorage,
+    private groupService: GroupService
   ) {
     this.updateMessageState();
     this.auth.currentUser.then(user => {
-      this.email = user.email;
-      this.getMyProfile(this.email);
+      if (user !== null) {
+        this.email = user.email;
+        this.getMyProfile(this.email);
+      }
+
     });
   }
 
@@ -130,6 +135,7 @@ export class MessageService implements OnDestroy {
                     messageId: docRef.id
                   }).then(() => {
                     console.log('확인 Firestore IF 파트,  저장했습니다.');
+                    this.addNotifications();
                     // this.addMessage.next(true);
                   });
                 });
@@ -148,6 +154,7 @@ export class MessageService implements OnDestroy {
           isPic
         }).then(() => {
           console.log('확인 Firebase else 파트,  저장했습니다.');
+          this.addNotifications();
         });
       }
 
@@ -268,6 +275,116 @@ export class MessageService implements OnDestroy {
   downloadProfilePic(uid): Observable<any> {
     return this.storage.ref(`picmessages/${uid}`).getDownloadURL();
   }
+
+  addGroupMsg(newMessage): void {
+    let groupId: IGroup;
+    const groupCollRef = this.db.collection('groups').ref;
+    const queryRef = groupCollRef.where('groupName', '==', this.groupService.currentGroup.groupName)
+      .where('creator', '==', this.groupService.currentGroup.creator);
+    queryRef.get().then((snapShot) => {
+      const groupid = snapShot.docs[0].data() as IGroup;
+      const checkforMsgs = this.db.doc('groupconvos/' + groupid.conversationId)
+        .collection('messages').ref;
+      if (checkforMsgs === undefined) {
+        this.groupMsgFlag.next('firstmsg');
+      }
+      // tslint:disable-next-line:one-variable-per-declaration
+      groupId = snapShot.docs[0].data() as IGroup;
+      this.db.doc('groupconvos/' + groupId.conversationId).collection('messages').add({
+        message: newMessage,
+        timestamp: firebase.default.firestore.FieldValue.serverTimestamp,
+        sentBy: this.email
+      });
+    });
+  }
+
+  getGroupMessages(count): Promise<any> {
+    return new Promise((resolve) => {
+      const groupCollRef = this.db.collection('groups').ref;
+      const queryRef = groupCollRef.where('groupName', '==', this.groupService.currentGroup.groupName)
+        .where('creator', '==', this.groupService.currentGroup.creator);
+      queryRef.get().then((snapShot) => {
+        const groupId = snapShot.docs[0].data() as IGroup;
+        const checkforMsgs = this.db.doc('groupconvos/' + groupId.conversationId)
+          .collection('messages').ref;
+        if (checkforMsgs !== undefined) {
+          const conId = snapShot.docs[0].data() as IGroup;
+          resolve(this.db.doc('groupconvos/' + conId.conversationId)
+            .collection('messages').valueChanges());
+        } else {
+          resolve(this.groupMsgFlag);
+          setTimeout(() => {
+            this.groupMsgFlag.next('Nothing');
+          }, 1000);
+        }
+      });
+    });
+  }
+
+  addGroupPic(pic): void {
+    let downloadURL;
+    const randNo = Math.floor(Math.random() * 10000000);
+    const picName = 'picture' + randNo;
+    const path = this.storage.ref('/groupPicmessages/' + picName);
+    const uploadTask = this.storage.upload('/picmessages/' + picName, pic);
+
+    uploadTask.snapshotChanges().pipe(
+      finalize(() => {
+        path.getDownloadURL().subscribe(imageURL => {
+          downloadURL = imageURL;
+        });
+        path.getMetadata().subscribe(metadata => {
+          if (metadata.contentType.match('image/.*')) {
+            this.addGroupMsg(downloadURL);
+          } else {
+            path.delete().subscribe(data => console.log('그림파일이 아닙니다.'));
+          }
+        });
+      })
+    ).subscribe((err => console.log('파일올리기 실패!!')));
+  }
+
+
+  addNotifications(sender: string = '', senderPic: string = '', senderName: string = ''): void {
+    this.db.collection('notifications').add({
+      receiver: this.user.email,
+      receiverName: this.user.displayName,
+      sender,
+      senderPic,
+      senderName,
+      timestamp: firebase.default.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
+  // 알림 가져오기
+  getMyNotifications(): Observable<any> {
+    return this.db.collection('notifications', ref => ref.where('sender', '==', this.user.email)).valueChanges();
+  }
+
+  // 알림 삭제
+  clearNotifications(): void {
+    const notificationsRef = this.db.collection('notifications').ref;
+    const queryRef = notificationsRef.where('sender', '==', this.user.email);
+    queryRef.get().then((snapShot) => {
+      if (!snapShot.empty) {
+        snapShot.docs.forEach((element) => {
+          element.ref.delete();
+        });
+      }
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

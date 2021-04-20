@@ -29,12 +29,14 @@
          </span>
   
        </div>
+    
        <mat-list>
           <mat-list-item *ngFor="let group of myGroups" (click)="openGroup(group)">
              <img matListAvatar [src]="group.groupPic">
              <h3 matLine>{{group.groupName}}</h3>
           </mat-list-item>
        </mat-list>
+  
 </div>
 
 
