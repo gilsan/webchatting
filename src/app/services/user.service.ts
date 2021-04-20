@@ -84,7 +84,7 @@ export class UserService implements OnDestroy {
     return this.db.doc<IUser>(`users/${uid}`).get()
       .pipe(
         map(snaps => snaps.data()),
-        // tap(data => console.log('[user][76][getUserProfile][호출자]', data, caller))
+        // tap(data => console.log('[user][87][getUserProfile][호출자]', data, caller))
 
       );
   }

@@ -31,8 +31,10 @@ export class AddMemberComponent implements OnInit, OnDestroy {
     this.init();
   }
 
+
+
   init(): void {
-    this.firebaseAuth.authState.subscribe((user) => {
+    this.subs.sink = this.firebaseAuth.authState.subscribe((user) => {
       this.user = user;
       this.getFriends(this.user.email);
     });

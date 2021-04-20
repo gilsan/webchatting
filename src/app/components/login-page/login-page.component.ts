@@ -46,6 +46,8 @@ export class LoginPageComponent implements OnInit {
 
     this.service.login(this.loginForm.value.email, this.loginForm.value.password)
       .subscribe(data => {
+        // 현사용자
+
 
         this.service.setUserStatus('online', data.user.uid, this.loginForm.value.email);
         this.router.navigate(['/dashboard']);

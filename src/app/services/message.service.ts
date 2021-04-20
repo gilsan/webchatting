@@ -243,7 +243,9 @@ export class MessageService implements OnDestroy {
 
     uploadTask.snapshotChanges().pipe(
       finalize(() => {
-        downloadURL = path.getDownloadURL();
+        path.getDownloadURL().subscribe(imageURL => {
+          downloadURL = imageURL;
+        });
         path.getMetadata().subscribe(metadata => {
           if (metadata.contentType.match('image/.*')) {
             this.addNewMsg(downloadURL, myemail);

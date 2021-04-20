@@ -7,7 +7,9 @@ import { SubSink } from 'subsink';
 import { MatDialog } from '@angular/material/dialog';
 import { AddMemberComponent } from '../add-member/add-member.component';
 import { GroupInfoComponent } from '../group-info/group-info.component';
-
+import { RemoveMemberComponent } from '../remove-member/remove-member.component';
+import { UserService } from 'src/app/services/user.service';
+import { concatMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-group-menu',
@@ -20,12 +22,16 @@ export class GroupMenuComponent implements OnInit, OnDestroy {
   isGroup = false;
   isOwner = false;
   user: IUser;
+  selectedFiles: FileList;
+  uid: string;
   private subs = new SubSink();
 
   constructor(
     private groupService: GroupService,
+    private userService: UserService,
     private auth: FirestoreService,
     private firebaseAuth: AngularFireAuth,
+    private firestoreService: FirestoreService,
     private dialog: MatDialog,
   ) { }
 
@@ -59,20 +65,26 @@ export class GroupMenuComponent implements OnInit, OnDestroy {
         this.isGroup = false;
       }
     });
+
+    this.subs.sink = this.firestoreService.currentUid$.subscribe(uid => {
+      this.uid = uid;
+    });
   }
+
 
   getUser(): void {
 
   }
 
-
-
   loseGroup(): void {
     this.isGroup = !this.isGroup;
   }
 
-  onFileInput(event): void {
-
+  onFileInput(evt): void {
+    this.selectedFiles = evt.target.files;
+    if (this.selectedFiles.item(0)) {
+      this.groupService.changePicture(this.selectedFiles.item(0));
+    }
   }
 
   addMember(): void {
@@ -88,5 +100,15 @@ export class GroupMenuComponent implements OnInit, OnDestroy {
       width: '400px'
     });
   }
+
+  // tslint:disable-next-line:adjacent-overload-signatures
+  removeMember(): void {
+    this.dialog.open(RemoveMemberComponent, {
+      height: '500px',
+      width: '400px'
+    });
+  }
+
+
 
 }

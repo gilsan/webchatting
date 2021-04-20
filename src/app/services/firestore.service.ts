@@ -32,6 +32,13 @@ export class FirestoreService {
     this.firebaseAuth.authState.subscribe((user) => {
       this.user = user;
       this.authState = user;
+      // console.log('[35][LOGIN][현재 authState] === ', user, this.authState);
+    });
+
+    this.firebaseAuth.currentUser.then((user) => {
+      this.user = user;
+      this.authState = user;
+      console.log('[39][LOGIN][현재 사용자 정보] ====', user);
     });
   }
 
@@ -60,7 +67,6 @@ export class FirestoreService {
     return from(this.firebaseAuth.signInWithEmailAndPassword(email, password))
       .pipe(
         tap(res => {
-          // console.log('login: ', res);
           this.authState = res.user;
           this.currentUserId = res.user.uid;
           this.isLoggedIn = true;

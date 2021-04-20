@@ -42,6 +42,7 @@ import { MygroupComponent } from './components/mygroup/mygroup.component';
 import { GroupMenuComponent } from './components/group-menu/group-menu.component';
 import { AddMemberComponent } from './components/add-member/add-member.component';
 import { GroupInfoComponent } from './components/group-info/group-info.component';
+import { RemoveMemberComponent } from './components/remove-member/remove-member.component';
 
 
 @NgModule({
@@ -67,7 +68,8 @@ import { GroupInfoComponent } from './components/group-info/group-info.component
     MygroupComponent,
     GroupMenuComponent,
     AddMemberComponent,
-    GroupInfoComponent
+    GroupInfoComponent,
+    RemoveMemberComponent
   ],
   imports: [
     BrowserModule,
@@ -89,7 +91,8 @@ import { GroupInfoComponent } from './components/group-info/group-info.component
   entryComponents: [
     LoadingSpinnerComponent,
     AddMemberComponent,
-    GroupInfoComponent
+    GroupInfoComponent,
+    RemoveMemberComponent
   ],
   bootstrap: [AppComponent]
 })

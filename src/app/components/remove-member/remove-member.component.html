@@ -1,0 +1,12 @@
+ <mat-list>
+   <mat-list-item *ngFor="let user of myFriends; let i = index"  >
+     <img matListAvatar [src]="user.photoURL" *ngIf="user.email !== currentUser.email">
+     <h3 matLine *ngIf="user.email !== currentUser.email">{{user.displayName}}</h3>
+ 
+     <button mat-icon-button mat-dialog-close *ngIf="user.email !== currentUser.email"
+     (click)="removeFriend(user)"
+     >
+         <mat-icon color="warn">delete</mat-icon>
+     </button>
+   </mat-list-item>
+</mat-list>

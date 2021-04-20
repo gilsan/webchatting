@@ -7,7 +7,8 @@
      <p matLine *ngIf="!isMember[i]">
        회원
      <p>
-     <button mat-icon-button (click)="addFriend(user)" *ngIf="isMember[i]">
+     <button mat-icon-button 
+       (click)="addFriend(user)" *ngIf="isMember[i]">
          <mat-icon color="primary">add_circle</mat-icon>
      </button>
    </mat-list-item>

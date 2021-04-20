@@ -4,6 +4,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SubSink } from 'subsink';
 import { GroupService } from './../../services/groups.service';
 import { MessageService } from 'src/app/services/message.service';
+import { Observable } from 'rxjs';
+import { IGroup } from 'src/app/models/userInfo';
+import { filter, map, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-mygroup',
@@ -24,13 +27,25 @@ export class MygroupComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.subs.sink = this.groupService.getGroups().subscribe((allGroups) => {
-      this.myGroups = allGroups;
+    this.groupService.getGroups().then((groupObs: Observable<any>) => {
+      groupObs
+        .pipe(
+          filter(val => val !== undefined),
+          map(val => val[0]),
+          tap(val => console.log('TAP [ngOnInit] ', val)),
+        )
+        .subscribe((allGroups) => {
+          // console.log('===== ', allGroups);
+          // this.myGroups = allGroups;
+
+
+        });
     });
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.myGroups = [];
   }
 
   addGroup(): void {

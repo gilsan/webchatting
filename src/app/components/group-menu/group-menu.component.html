@@ -10,7 +10,7 @@
                     <mat-icon>add_circle</mat-icon>
                </button>
             </span>
-           <span matTooltip="멤버축출" *ngIf="isOwner">
+           <span matTooltip="멤버축출" *ngIf="isOwner" (click)="removeMember()">
                <button mat-mini-fab color="warn"  >
                      <mat-icon>remove_circle</mat-icon>
                </button>
