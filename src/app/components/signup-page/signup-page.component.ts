@@ -54,7 +54,5 @@ export class SignupPageComponent implements OnInit {
 
 
 }
-function PICTURE_URL(email: any, arg1: string, PICTURE_URL: any) {
-  throw new Error('Function not implemented.');
-}
+
 

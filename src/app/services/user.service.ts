@@ -243,12 +243,16 @@ export class UserService implements OnDestroy {
 
 
   instantSearch(startValue, endValue): Observable<any> {
-    // console.log('[user][51]');
+    console.log('[user][51]', startValue, endValue);
     return this.db.collection('users',
       ref => ref.orderBy('displayName')
         .startAt(startValue)
         .endAt(endValue)
-    ).valueChanges();
+    ).valueChanges()
+      .pipe(
+        tap((user) => console.log(' [instant]', user)),
+        filter(user => user.length > 0)
+      );
   }
 
   // 사용자 상태 가져오기

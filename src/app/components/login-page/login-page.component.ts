@@ -2,10 +2,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, NgForm, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { FirestoreService } from '../../services/firestore.service';
-import { SignupPageComponent } from '../signup-page/signup-page.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SubSink } from 'subsink';
+import { FirestoreService } from '../../services/firestore.service';
+import { SignupPageComponent } from '../signup-page/signup-page.component';
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
